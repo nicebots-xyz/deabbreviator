@@ -3,6 +3,7 @@
 
 import argparse
 import asyncio
+from typing import Any
 
 import markdown
 import nodriver as uc
@@ -28,10 +29,10 @@ completed = False
 
 
 async def async_main(args: argparse.Namespace) -> None:
-    with open("description.md", encoding="utf-8") as f:
-        description: str = f.read()
-    with open(args.config, encoding="utf-8") as f:
-        config: dict = yaml.safe_load(f)
+    async with open("description.md", encoding="utf-8") as f:
+        description: str = await f.read()
+    async with open(args.config, encoding="utf-8") as f:
+        config: dict[Any, Any] = yaml.safe_load(await f.read())
     application_id = args.application_id if args.application_id else config["application_id"]
 
     description = markdown.markdown(description)

@@ -7,7 +7,7 @@ from .DiscordBotsGg import DiscordBotsGg
 from .DiscordMe import DiscordMe
 from .DiscordsCom import DiscordsCom
 from .DisforgeCom import DisforgeCom
-from .Listing import BaseError, NotFoundError, normalize_soup
+from .Listing import BaseError, Listing, NotFoundError, normalize_soup
 from .TopGg import TopGg
 from .WumpusStore import WumpusStore
 
@@ -23,4 +23,5 @@ __all__ = [
     "DisforgeCom",
     "DiscordBotsGg",
     "DiscordMe",
+    "Listing",
 ]
