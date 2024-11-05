@@ -1,16 +1,17 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
+from collections.abc import Callable
 from inspect import signature
-from typing import Any, Callable
+from typing import Any
 
 
 def setup_func(func: Callable[..., Any], **kwargs: Any) -> Any:
-    """
-    Setup a Coroutine function with the required arguments from the kwargs
+    """Set up a Coroutine function with the required arguments from the kwargs.
+
     :param func: The function to setup
     :param kwargs: The arguments that may be passed to the function if the function requires them
-    :return: The result of the function
+    :return: The result of the function.
     """
     parameters = signature(func).parameters
     func_kwargs = {}

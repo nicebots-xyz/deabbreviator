@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MIT
 
 import nodriver as uc
-
 from bs4 import BeautifulSoup
 
 from .Listing import Listing, NotFoundError
@@ -11,19 +10,19 @@ from .Listing import Listing, NotFoundError
 class TopGg(Listing):
     name: str = "Top.gg"
 
-    def __init__(self, browser: uc.Browser, application_id: int):
+    def __init__(self, browser: uc.Browser, application_id: int) -> None:
         super().__init__(browser)
         self.application_id = application_id
 
-    async def fetch_raw_description(self):
+    async def fetch_raw_description(self) -> str:
         url = f"https://top.gg/bot/{self.application_id}"
         page = await self.browser.get(url)
         if (
             len(
                 await page.find_elements_by_text(
-                    "Oops! We can’t seem to find the page you’re looking for.",
+                    "Oops! We can’t seem to find the page you’re looking for.",  # noqa: RUF001
                     tag_hint="p",
-                )
+                ),
             )
             != 0
         ):

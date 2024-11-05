@@ -4,6 +4,8 @@
 import logging
 import os
 import time
+from typing import Any
+
 import coloredlogs
 
 from src.config import config
@@ -14,7 +16,7 @@ logging.addLevelName(SUCCESS, "SUCCESS")
 
 
 class CustomLogger(logging.Logger):
-    def success(self, msg, *args, **kwargs) -> None:  # pyright: ignore[reportUnknownParameterType,reportMissingParameterType]
+    def success(self, msg: str, *args: Any, **kwargs: Any) -> None:  # pyright: ignore[reportUnknownParameterType,reportMissingParameterType]
         if self.isEnabledFor(SUCCESS):
             self._log(SUCCESS, msg, args, **kwargs)  # pyright: ignore[reportUnknownArgumentType]
 
@@ -22,18 +24,12 @@ class CustomLogger(logging.Logger):
 # Register the custom logger class
 logging.setLoggerClass(CustomLogger)
 
-level: int = getattr(
-    logging, config.get("logging", {}).get("level", "").upper() or "INFO"
-)
+level: int = getattr(logging, config.get("logging", {}).get("level", "").upper() or "INFO")
 logging.basicConfig(level=level, handlers=[])
 
 os.makedirs("logs", exist_ok=True)
 file_handler = logging.FileHandler(f"logs/{time.time()}.log", encoding="utf-8")
-file_handler.setFormatter(
-    logging.Formatter(
-        "%(levelname)-8s at %(asctime)s: %(message)s\n\t%(pathname)s:%(lineno)d"
-    )
-)
+file_handler.setFormatter(logging.Formatter("%(levelname)-8s at %(asctime)s: %(message)s\n\t%(pathname)s:%(lineno)d"))
 file_handler.setLevel("DEBUG")
 
 # More stylish coloredlogs format

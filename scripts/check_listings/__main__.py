@@ -1,39 +1,38 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-import asyncio
-import nodriver as uc
-import markdown
 import argparse
-import yaml
+import asyncio
 
-from termcolor import cprint
+import markdown
+import nodriver as uc
+import yaml
+from aiofile import async_open as open  # noqa: A001
 from bs4 import BeautifulSoup
+from termcolor import cprint
 
 from .listings import (
-    normalize_soup,
-    TopGg,
-    DiscordsCom,
-    WumpusStore,
     DiscordAppDirectory,
     DiscordBotListCom,
-    DisforgeCom,
     DiscordBotsGg,
     DiscordMe,
+    DiscordsCom,
+    DisforgeCom,
     NotFoundError,
+    TopGg,
+    WumpusStore,
+    normalize_soup,
 )
 
-COMPLETED = False
+completed = False
 
 
-async def async_main(args):
-    with open("description.md", "r", encoding="utf-8") as f:
+async def async_main(args: argparse.Namespace) -> None:
+    with open("description.md", encoding="utf-8") as f:
         description: str = f.read()
-    with open(args.config, "r", encoding="utf-8") as f:
+    with open(args.config, encoding="utf-8") as f:
         config: dict = yaml.safe_load(f)
-    application_id = (
-        args.application_id if args.application_id else config["application_id"]
-    )
+    application_id = args.application_id if args.application_id else config["application_id"]
 
     description = markdown.markdown(description)
     description = normalize_soup(BeautifulSoup(description, "html.parser"))
@@ -62,18 +61,18 @@ async def async_main(args):
         except NotFoundError:
             cprint(f"{listing.name} not published", "black", "on_light_red")
             continue
-        except asyncio.TimeoutError:
+        except TimeoutError:
             cprint(f"{listing.name} timed out")
             continue
         if description == its_description:
             cprint(f"{listing.name} matches", "black", "on_green")
         else:
             cprint(f"{listing.name} does not match", "black", "on_yellow")
-    global COMPLETED
-    COMPLETED = True
+    global completed  # noqa: PLW0603
+    completed = True
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         prog="Listings checker",
         description="Check the published status of your discord listings",
@@ -84,8 +83,8 @@ def main():
     args = parser.parse_args()
     try:
         asyncio.get_event_loop().run_until_complete(async_main(args))
-    except Exception as e:  # noqa
-        if not COMPLETED:
+    except Exception:
+        if not completed:
             raise
 
 

@@ -2,19 +2,20 @@
 # SPDX-License-Identifier: MIT
 
 from typing import Any
+
 from .handler import handle_error
 
 
-async def patch(config: dict[str, Any]):
+async def patch(config: dict[str, Any]) -> None:
     sentry_sdk = None
     if config.get("sentry", {}).get("dsn"):
         import sentry_sdk
-        from sentry_sdk.integrations.logging import LoggingIntegration
         from sentry_sdk.integrations.asyncio import AsyncioIntegration
+        from sentry_sdk.integrations.logging import LoggingIntegration
         from sentry_sdk.scrubber import (
-            EventScrubber,
             DEFAULT_DENYLIST,
             DEFAULT_PII_DENYLIST,
+            EventScrubber,
         )
 
         sentry_sdk.init(

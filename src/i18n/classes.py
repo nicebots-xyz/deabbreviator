@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: MIT
 
 from typing import Any
-from typing_extensions import override
+
 from pydantic import BaseModel, Field
+from typing_extensions import override
 
 LOCALES = (
     "en-US",
@@ -42,11 +43,11 @@ DEFAULT = "en-US"
 
 
 class RawTranslation(BaseModel):
-    en_US: str | None = Field(None, alias="en-US")
-    en_GB: str | None = Field(None, alias="en-GB")
+    en_US: str | None = Field(None, alias="en-US")  # noqa: N815
+    en_GB: str | None = Field(None, alias="en-GB")  # noqa: N815
     bg: str | None = None
-    zh_CN: str | None = Field(None, alias="zh-CN")
-    zh_TW: str | None = Field(None, alias="zh-TW")
+    zh_CN: str | None = Field(None, alias="zh-CN")  # noqa: N815
+    zh_TW: str | None = Field(None, alias="zh-TW")  # noqa: N815
     hr: str | None = None
     cs: str | None = None
     da: str | None = None
@@ -63,12 +64,12 @@ class RawTranslation(BaseModel):
     lt: str | None = None
     no: str | None = None
     pl: str | None = None
-    pt_BR: str | None = Field(None, alias="pt-BR")
+    pt_BR: str | None = Field(None, alias="pt-BR")  # noqa: N815
     ro: str | None = None
     ru: str | None = None
-    es_ES: str | None = Field(None, alias="es-ES")
+    es_ES: str | None = Field(None, alias="es-ES")  # noqa: N815
     es_419: str | None = Field(None, alias="es-419")
-    sv_SE: str | None = Field(None, alias="sv-SE")
+    sv_SE: str | None = Field(None, alias="sv-SE")  # noqa: N815
     th: str | None = None
     tr: str | None = None
     uk: str | None = None
@@ -84,7 +85,7 @@ class Translation(BaseModel):
 
 
 class TranslationWrapper:
-    def __init__(self, model: "Translatable", locale: str, default: str = DEFAULT):
+    def __init__(self, model: "Translatable", locale: str, default: str = DEFAULT) -> None:
         self._model = model
         self._default: str
         self.default = default.replace("-", "_")
@@ -100,9 +101,7 @@ class TranslationWrapper:
             applicable = getattr(self._model, key)
         if isinstance(applicable, RawTranslation):
             try:
-                return getattr(applicable, self._locale) or getattr(
-                    applicable, self._default
-                )
+                return getattr(applicable, self._locale) or getattr(applicable, self._default)
             except AttributeError:
                 return getattr(applicable, self._default)
         return apply_locale(applicable, self._locale)
@@ -162,9 +161,7 @@ class Deg1CommandTranslation(CommandTranslation):
     commands: dict[str, Deg2CommandTranslation] | None = None
 
 
-AnyCommandTranslation = (
-    Deg1CommandTranslation | Deg2CommandTranslation | Deg3CommandTranslation
-)
+AnyCommandTranslation = Deg1CommandTranslation | Deg2CommandTranslation | Deg3CommandTranslation
 
 
 class ExtensionTranslation(Translation):

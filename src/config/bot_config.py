@@ -1,12 +1,13 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-import yaml
+import contextlib
 import os
-import orjson
-
-from dotenv import load_dotenv
 from typing import Any
+
+import orjson
+import yaml
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -14,13 +15,13 @@ SPLIT: str = "__"
 
 
 def load_from_env() -> dict[str, dict[str, Any]]:
-    _config = {}
+    _config: dict[str, Any] = {}
     values = {k: v for k, v in os.environ.items() if k.startswith(f"BOTKIT{SPLIT}")}
     values = {k[len(f"BOTKIT{SPLIT}") :]: v for k, v in values.items()}
-    current: dict = {}
+    current: dict[str, Any] = {}
     for key, value in values.items():
         for i, part in enumerate(key.split(SPLIT)):
-            part = part.lower()
+            part = part.lower()  # noqa: PLW2901
             if i == 0:
                 if part not in _config:
                     _config[part] = {}
@@ -47,10 +48,8 @@ def load_json_recursive(data: dict[str, Any]) -> dict[str, Any]:
             elif value.lower() == "false":
                 data[key] = False
             else:
-                try:
+                with contextlib.suppress(orjson.JSONDecodeError):
                     data[key] = orjson.loads(value)
-                except orjson.JSONDecodeError:
-                    pass
     return data
 
 
@@ -63,7 +62,7 @@ elif os.path.exists("config.yml"):
 config: dict[str, dict[str, Any]]
 if path:
     # noinspection PyArgumentEqualDefault
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         config = yaml.safe_load(f)
 else:
     config = load_from_env()

@@ -1,46 +1,49 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-import discord
+import asyncio
 import importlib
 import importlib.util
-import asyncio
-
-from discord.ext import commands
-import yaml
-from quart import Quart
 from glob import iglob
-from src.i18n.classes import ExtensionTranslation
+from os.path import basename, splitext
+from typing import TYPE_CHECKING, Any, TypedDict
+
+import discord
+import yaml
+from discord.ext import commands
+from quart import Quart
+
+from src import custom, i18n
 from src.config import config, store_config
+from src.i18n.classes import ExtensionTranslation
 from src.log import logger, patch
-from os.path import splitext, basename
-from types import ModuleType
-from typing import Any, Callable, TypedDict, TYPE_CHECKING
-from collections.abc import Coroutine
-from src.utils import validate_module, unzip_extensions, setup_func
-from src import i18n
+from src.utils import setup_func, unzip_extensions, validate_module
 from src.utils.iterator import next_default
-from src import custom
 
 if TYPE_CHECKING:
-    FunctionConfig = TypedDict("FunctionConfig", {"enabled": bool})
+    from collections.abc import Callable, Coroutine
+    from types import ModuleType
+
+    class FunctionConfig(TypedDict):
+        enabled: bool
+
     FunctionlistType = list[tuple[Callable[..., Any], FunctionConfig]]
 
 
-async def start_bot(bot: custom.Bot, token: str):
+async def start_bot(bot: custom.Bot, token: str) -> None:
     await bot.start(token)
 
 
-async def start_backend(app: Quart, bot: discord.Bot, token: str):
+async def start_backend(app: Quart, bot: discord.Bot, token: str) -> None:
+    from hypercorn.asyncio import serve  # pyright: ignore [reportUnknownVariableType]
     from hypercorn.config import Config
     from hypercorn.logging import Logger as HypercornLogger
-    from hypercorn.asyncio import serve  # pyright: ignore [reportUnknownVariableType]
 
     class CustomLogger(HypercornLogger):
         def __init__(
             self,
-            *args,  # pyright: ignore [reportUnknownParameterType,reportMissingParameterType]
-            **kwargs,  # pyright: ignore [reportUnknownParameterType,reportMissingParameterType]
+            *args,  # pyright: ignore [reportUnknownParameterType,reportMissingParameterType]  # noqa: ANN002
+            **kwargs,  # pyright: ignore [reportUnknownParameterType,reportMissingParameterType]  # noqa: ANN003
         ) -> None:
             super().__init__(
                 *args,  # pyright: ignore [reportUnknownArgumentType]
@@ -69,9 +72,9 @@ def load_extensions() -> (
         "list[ExtensionTranslation]",
     ]
 ):
-    bot_functions: "FunctionlistType" = []
-    back_functions: "FunctionlistType" = []
-    startup_functions: "FunctionlistType" = []
+    bot_functions: FunctionlistType = []
+    back_functions: FunctionlistType = []
+    startup_functions: FunctionlistType = []
     translations: list[ExtensionTranslation] = []
     for extension in iglob("src/extensions/*"):
         name = splitext(basename(extension))[0]
@@ -112,16 +115,14 @@ async def setup_and_start_bot(
     bot_functions: "FunctionlistType",
     translations: list[ExtensionTranslation],
     config: dict[str, Any],
-):
+) -> None:
     intents = discord.Intents.default()
     if config.get("prefix"):
         intents.message_content = True
     bot = custom.Bot(
         intents=intents,
         help_command=None,
-        command_prefix=(
-            config.get("prefix", {}).get("prefix") or commands.when_mentioned
-        ),
+        command_prefix=(config.get("prefix", {}).get("prefix") or commands.when_mentioned),
     )
     for function, its_config in bot_functions:
         setup_func(function, bot=bot, config=its_config)
@@ -129,13 +130,13 @@ async def setup_and_start_bot(
     if not config.get("prefix", {}).get("enabled", True):
         bot.prefixed_commands = {}
     if not config.get("slash", {}).get("enabled", True):
-        bot._pending_application_commands = []  # pyright: ignore[reportPrivateUsage]
+        bot._pending_application_commands = []  # pyright: ignore[reportPrivateUsage]  # noqa: SLF001
     await start_bot(bot, config["token"])
 
 
 async def setup_and_start_backend(
     back_functions: "FunctionlistType",
-):
+) -> None:
     back_bot = discord.Bot(intents=discord.Intents.default())
     app = Quart("backend")
     for function, its_config in back_functions:
@@ -147,42 +148,35 @@ async def run_startup_functions(
     startup_functions: "FunctionlistType",
     app: Quart | None,
     back_bot: discord.Bot | None,
-):
+) -> None:
     startup_coros = [
-        setup_func(function, app=app, bot=back_bot, config=its_config)
-        for function, its_config in startup_functions
+        setup_func(function, app=app, bot=back_bot, config=its_config) for function, its_config in startup_functions
     ]
     await asyncio.gather(*startup_coros)
 
 
-async def main(run_bot: bool | None = None, run_backend: bool | None = None):
-    assert config.get("bot", {}).get("token"), "No bot token provided in config"
+async def main(run_bot: bool | None = None, run_backend: bool | None = None) -> None:
+    if not config.get("bot", {}).get("token"):
+        logger.critical("No bot token provided in config, exiting...")
+        return
     unzip_extensions()
     run_bot = run_bot if run_bot is not None else config.get("use", {}).get("bot", True)
-    run_backend = (
-        run_backend
-        if run_backend is not None
-        else config.get("use", {}).get("backend", True)
-    )
+    run_backend = run_backend if run_backend is not None else config.get("use", {}).get("backend", True)
 
     bot_functions, back_functions, startup_functions, translations = load_extensions()
 
     coros: list[Coroutine[Any, Any, Any]] = []
     if bot_functions and run_bot:
-        coros.append(
-            setup_and_start_bot(bot_functions, translations, config.get("bot", {}))
-        )
+        coros.append(setup_and_start_bot(bot_functions, translations, config.get("bot", {})))
     if back_functions and run_backend:
         coros.append(setup_and_start_backend(back_functions))
-    assert coros, "No extensions to run"
+    if not coros:
+        logger.error("No extensions to run, exiting...")
+        return
 
     if startup_functions:
         app = Quart("backend") if (back_functions and run_backend) else None
-        back_bot = (
-            discord.Bot(intents=discord.Intents.default())
-            if (back_functions and run_backend)
-            else None
-        )
+        back_bot = discord.Bot(intents=discord.Intents.default()) if (back_functions and run_backend) else None
         await run_startup_functions(startup_functions, app, back_bot)
 
     await asyncio.gather(*coros)

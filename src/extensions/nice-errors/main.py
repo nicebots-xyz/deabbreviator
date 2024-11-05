@@ -1,14 +1,15 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-import discord
+from typing import Any
 
+import discord
 from discord.ext import commands
-from schema import Schema, Optional
+from schema import Optional, Schema
 
 from src import custom
+
 from .handler import handle_error
-from typing import Any
 
 default = {
     "enabled": True,
@@ -18,12 +19,12 @@ schema = Schema(
     {
         "enabled": bool,
         Optional("sentry"): {"dsn": str},
-    }
+    },
 )
 
 
 class NiceErrors(commands.Cog):
-    def __init__(self, bot: discord.Bot, sentry_sdk: bool, config: dict[str, Any]):
+    def __init__(self, bot: discord.Bot, sentry_sdk: bool, config: dict[str, Any]) -> None:
         self.bot = bot
         self.sentry_sdk = sentry_sdk
         self.config = config
@@ -33,7 +34,7 @@ class NiceErrors(commands.Cog):
         self,
         ctx: custom.ApplicationContext,
         error: discord.ApplicationCommandInvokeError,
-    ):
+    ) -> None:
         await handle_error(
             error,
             ctx,
@@ -42,9 +43,7 @@ class NiceErrors(commands.Cog):
         )
 
     @discord.Cog.listener("on_command_error")
-    async def on_command_error(
-        self, ctx: custom.ExtContext, error: commands.CommandError
-    ):
+    async def on_command_error(self, ctx: custom.ExtContext, error: commands.CommandError) -> None:
         await handle_error(
             error,
             ctx,

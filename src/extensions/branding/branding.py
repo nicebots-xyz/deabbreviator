@@ -2,14 +2,16 @@
 # SPDX-License-Identifier: MIT
 
 import logging
-import discord
-import pytz
 import random
 from datetime import datetime
+from typing import Any
 
-from typing_extensions import TypedDict
+import discord
+import pytz
 from discord.ext import commands, tasks
-from schema import Schema, And, Optional, Or
+from schema import And, Optional, Or, Schema
+from typing_extensions import TypedDict
+
 from src.log import logger
 
 BASE_URL = "https://top.gg/api"
@@ -41,7 +43,7 @@ status_schema = Schema(
         Optional("listening"): Or(str, list[str]),
         Optional("streaming"): Or(str, list[str]),
         Optional("every"): And(int, lambda n: n > 0),
-    }
+    },
 )
 
 embed_config_schema = Schema(
@@ -52,12 +54,12 @@ embed_config_schema = Schema(
                 Optional("time"): bool,
                 Optional("tz"): And(str, lambda s: s in pytz.all_timezones),
                 Optional("separator"): str,
-            }
+            },
         ),
         Optional("color"): Or(str, int),
         Optional("author_url"): str,
         Optional("author"): str,
-    }
+    },
 )
 
 schema = Schema(
@@ -66,11 +68,9 @@ schema = Schema(
         Optional("embed"): embed_config_schema,
         Optional("status"): And(
             status_schema,
-            lambda s: any(
-                k in ["playing", "watching", "listening", "streaming"] for k in s.keys()
-            ),
+            lambda s: any(k in ["playing", "watching", "listening", "streaming"] for k in s),
         ),
-    }
+    },
 )
 
 
@@ -104,39 +104,36 @@ class Config(TypedDict):
 
 
 class Branding(commands.Cog):
-    def __init__(self, bot: discord.Bot, config: Config):
+    def __init__(self, bot: discord.Bot, config: Config) -> None:
         self.bot = bot
         self.config = config
 
-        if self.config.get("status"):
-            status: StatusConfig = self.config["status"]
+        if status := self.config.get("status"):
             if not status.get("every"):
                 status["every"] = 60 * 5
-            assert isinstance(status["every"], int), "status.every must be an integer"
+            if not isinstance(status["every"], int):
+                raise AssertionError("status.every must be an integer")
 
-            @tasks.loop(seconds=status["every"])
-            async def update_status_loop():
-                try:
-                    await self.update_status()
-                except Exception as e:
-                    logger.error(f"Error updating status: {e}")
+            @tasks.loop(seconds=status["every"], reconnect=True)
+            async def update_status_loop() -> None:
+                await self.update_status()
 
             self.update_status_loop = update_status_loop
 
     @commands.Cog.listener()
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         if self.config.get("status"):
             self.update_status_loop.start()
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         if self.config.get("status"):
             self.update_status_loop.cancel()
 
-    async def update_status(self):
-        status_types = list(self.config["status"].keys())
+    async def update_status(self) -> None:
+        status_types = list(self.config["status"].keys())  # pyright: ignore [reportOptionalMemberAccess]
         status_types.remove("every")
-        status_type: str = random.choice(status_types)
-        status: str = random.choice(self.config["status"][status_type])
+        status_type: str = random.choice(status_types)  # noqa: S311
+        status: str = random.choice(self.config["status"][status_type])  # noqa: S311  # pyright: ignore [reportOptionalSubscript, reportUnknownArgumentType]
         activity = discord.Activity(
             name=status,
             type=getattr(discord.ActivityType, status_type),
@@ -144,11 +141,11 @@ class Branding(commands.Cog):
         await self.bot.change_presence(activity=activity)
 
 
-def setup(bot: discord.Bot, config: dict):
+def setup(bot: discord.Bot, config: dict[Any, Any]) -> None:  # noqa: C901
     if not config.get("embed") and not config.get("status"):
         logger.warning(
             "Branding extension is enabled but no configuration is provided for embed or status. You can disable this "
-            "extension or provide a configuration in the config.yaml file."
+            "extension or provide a configuration in the config.yaml file.",
         )
     if config.get("embed"):
         embed: EmbedConfig = config["embed"]
@@ -161,26 +158,23 @@ def setup(bot: discord.Bot, config: dict):
                 footer["value"]: list[str] = []
             if not footer.get("separator"):
                 footer["separator"] = "|"
-        if color := embed.get("color"):
-            if isinstance(color, str):
-                embed["color"]: str = color.lstrip("#")
-                embed["color"]: int = int(embed["color"], 16)
+        if (color := embed.get("color")) and isinstance(color, str):
+            embed["color"]: str = color.lstrip("#")
+            embed["color"]: int = int(embed["color"], 16)
 
         class Embed(discord.Embed):
-            def __init__(self, **kwargs):
+            def __init__(self, **kwargs: Any) -> None:
                 super().__init__(**kwargs)
                 if footer:
                     value: list[str] = footer["value"].copy()
                     if footer.get("time"):
-                        time: str = datetime.now(
-                            pytz.timezone(footer.get("tz", "UTC"))
-                        ).strftime(f"%d %B %Y at %H:%M ({footer.get('tz', 'UTC')})")
+                        time: str = datetime.now(pytz.timezone(footer.get("tz", "UTC"))).strftime(
+                            f"%d %B %Y at %H:%M ({footer.get('tz', 'UTC')})",
+                        )
                         value.append(time)
                     self.set_footer(text=f" {footer['separator']} ".join(value))
                 if embed.get("author"):
-                    self.set_author(
-                        name=embed["author"], icon_url=embed.get("author_url")
-                    )
+                    self.set_author(name=embed["author"], icon_url=embed.get("author_url"))
                 if embed.get("color") and not kwargs.get("color"):
                     self.color = discord.Color(embed["color"])
 

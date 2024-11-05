@@ -1,9 +1,8 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-import nodriver as uc
-import asyncio
 
+import nodriver as uc
 from bs4 import BeautifulSoup
 
 from .Listing import Listing, NotFoundError
@@ -12,16 +11,16 @@ from .Listing import Listing, NotFoundError
 class DiscordBotListCom(Listing):
     name: str = "DiscordBotList.com"
 
-    def __init__(self, browser: uc.Browser, url: str):
+    def __init__(self, browser: uc.Browser, url: str) -> None:
         super().__init__(browser)
         self.url = url
 
-    async def fetch_raw_description(self):
+    async def fetch_raw_description(self) -> str:
         page = await self.browser.get(self.url)
         try:
             await page.find("Page not found")
             raise NotFoundError("Listing not found")
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass
         description = await page.select("article > .markdown")
         html = await description.get_html()

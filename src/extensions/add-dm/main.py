@@ -2,11 +2,10 @@
 # SPDX-License-Identifier: MIT
 
 import discord
-
 from discord.ext import commands
 from schema import Schema
-from src.log import logger
 
+from src.log import logger
 
 default = {
     "enabled": True,
@@ -17,23 +16,21 @@ schema = Schema(
     {
         "enabled": bool,
         "message": str,
-    }
+    },
 )
 
 
 class AddDM(commands.Cog):
-    def __init__(self, bot: discord.Bot, config: dict):
+    def __init__(self, bot: discord.Bot, config: dict) -> None:
         self.bot = bot
         self.config = config
 
     @discord.Cog.listener("on_guild_join")
-    async def on_join(self, guild: discord.Guild):
+    async def on_join(self, guild: discord.Guild) -> None:
         if not guild.me.guild_permissions.view_audit_log:
             return
 
-        entry = await guild.audit_logs(
-            limit=1, action=discord.AuditLogAction.bot_add
-        ).flatten()
+        entry = await guild.audit_logs(limit=1, action=discord.AuditLogAction.bot_add).flatten()
         user = entry[0].user
         try:
             await user.send(self.config["message"].format(user=user))

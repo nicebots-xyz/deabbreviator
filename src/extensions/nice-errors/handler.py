@@ -1,22 +1,23 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-from typing import Any
-from typing_extensions import override
-import discord
-from discord.interactions import Interaction
-from src.i18n.classes import RawTranslation
-from src.i18n import apply_locale
-from src import custom
+import contextlib
 import difflib
-from discord.ext import commands, bridge
+from typing import Any
+
+import discord
+from discord.ext import bridge, commands
+from discord.interactions import Interaction
+from typing_extensions import override
+
+from src import custom
+from src.i18n import apply_locale
+from src.i18n.classes import RawTranslation
 
 sentry_sdk = None
 
-try:
+with contextlib.suppress(ImportError):
     import sentry_sdk
-except ImportError:
-    pass
 
 
 class RunInsteadButton(discord.ui.Button[discord.ui.View]):
@@ -26,27 +27,25 @@ class RunInsteadButton(discord.ui.Button[discord.ui.View]):
         *,
         ctx: custom.ExtContext,
         instead: bridge.BridgeExtCommand | commands.Command[Any, Any, Any],
-    ):
+    ) -> None:
         self.ctx = ctx
         self.instead = instead
         super().__init__(style=discord.ButtonStyle.green, label=label)
 
     @override
-    async def callback(self, interaction: Interaction):
+    async def callback(self, interaction: Interaction) -> None:
         if (
             not interaction.user
             or not self.ctx.author  # pyright: ignore[reportUnnecessaryComparison]
-            or not interaction.user.id == self.ctx.author.id  # pyright: ignore[reportFunctionMemberAccess]
+            or interaction.user.id != self.ctx.author.id  # pyright: ignore[reportFunctionMemberAccess]
         ):
             await interaction.respond(":x: Nope", ephemeral=True)
             return
         await self.instead.invoke(self.ctx)
         await interaction.response.defer()
         if interaction.message:
-            try:
+            with contextlib.suppress(discord.HTTPException):
                 await interaction.message.delete()
-            except discord.HTTPException:
-                pass
 
 
 def find_most_similar(word: str, word_list: list[str]) -> str | None:
@@ -63,9 +62,9 @@ def find_similar_command(
         return None
     if not isinstance(ctx.bot, custom.Bot):
         return None
-    command_list: dict[
-        str, bridge.BridgeExtCommand | commands.Command[Any, Any, Any]
-    ] = {cmd.name: cmd for cmd in ctx.bot.commands}  # pyright: ignore[reportUnknownVariableType]
+    command_list: dict[str, bridge.BridgeExtCommand | commands.Command[Any, Any, Any]] = {
+        cmd.name: cmd for cmd in ctx.bot.commands
+    }  # pyright: ignore[reportUnknownVariableType]
     similar_command: str | None = find_most_similar(command, list(command_list.keys()))
     if similar_command:
         return command_list.get(similar_command)
@@ -90,20 +89,16 @@ async def handle_error(
     /,
     raw_translations: dict[str, RawTranslation],
     use_sentry_sdk: bool = False,
-):
+) -> None:
     original_error = error
     report: bool = True
     sendargs: dict[str, Any] = {}
     translations = apply_locale(raw_translations, get_locale(ctx))
     if isinstance(error, discord.ApplicationCommandInvokeError):
         original_error = error.original
-    if isinstance(error, commands.CommandNotFound) and isinstance(
-        ctx, custom.ExtContext
-    ):
+    if isinstance(error, commands.CommandNotFound) and isinstance(ctx, custom.ExtContext):
         if similar_command := find_similar_command(ctx):
-            message = translations.error_command_not_found.format(
-                similar_command=similar_command.name
-            )
+            message = translations.error_command_not_found.format(similar_command=similar_command.name)
             view = discord.ui.View(
                 RunInsteadButton(
                     translations.run_x_instead.format(command=similar_command.name),
@@ -118,10 +113,7 @@ async def handle_error(
         else:
             return  # this is not an error in the program
     elif isinstance(error, discord.Forbidden):
-        message = (
-            translations.error_missing_permissions
-            + f"\n`{original_error.args[0].split(':')[-1].strip()}`"
-        )
+        message = translations.error_missing_permissions + f"\n`{original_error.args[0].split(':')[-1].strip()}`"
     else:
         message = translations.error_generic
     if report and use_sentry_sdk and sentry_sdk:

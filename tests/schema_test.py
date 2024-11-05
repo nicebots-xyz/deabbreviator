@@ -1,14 +1,15 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-from glob import iglob
-from os.path import splitext, basename
 import importlib
+from glob import iglob
+from os.path import basename, splitext
 
 from src.utils import validate_module
 
 
-def test_ext_schemas():
+def test_ext_schemas() -> None:
+    """Test the schemas of all extensions."""
     for ext in iglob("src/extensions/*"):
         name = splitext(basename(ext))[0]
         module = importlib.import_module(f"src.extensions.{name}")

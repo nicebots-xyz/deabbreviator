@@ -1,7 +1,7 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-from .extensions import validate_module, unzip_extensions
+from .extensions import unzip_extensions, validate_module
 from .misc import mention_command
 from .setup_func import setup_func
 

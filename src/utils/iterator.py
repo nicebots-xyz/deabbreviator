@@ -1,8 +1,8 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-from typing import TypeVar
 from collections.abc import Iterator
+from typing import TypeVar
 
 T = TypeVar("T")
 V = TypeVar("V")

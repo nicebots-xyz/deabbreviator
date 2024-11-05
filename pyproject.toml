@@ -10,7 +10,7 @@ dependencies = [
     "aiohttp>=3.9.5",
     "pyyaml>=6.0.1",
     "python-dotenv>=1.0.1",
-    "orjson>=3.10.5",
+    "orjson>=3.10.7",
     "pytz>=2024.1",
     "typing-extensions>=4.12.2",
     "schema>=0.7.7",
@@ -18,6 +18,7 @@ dependencies = [
     "quart>=0.19.6",
     "pydantic>=2.9.2",
     "coloredlogs>=15.0.1",
+    "aiofile>=3.9.0",
 ]
 requires-python = "==3.11.*"
 readme = "README.md"
@@ -54,3 +55,48 @@ reportAny = false
 reportUnusedCallResult = false
 reportUnknownMemberType = false
 pythonVersion = "3.11"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+indent-width = 4
+
+[tool.ruff.format]
+quote-style = "double"
+
+indent-style = "space"
+
+skip-magic-trailing-comma = false
+
+line-ending = "auto"
+
+docstring-code-format = false
+
+docstring-code-line-length = "dynamic"
+
+[tool.ruff.lint]
+select = ["ALL"]
+extend-ignore = ["N999",
+    "D104",
+    "D100",
+    "D103",
+    "D102",
+    "D101",
+    "D107",
+    "D105",
+    "D106",
+    "ANN401",
+    "ANN101",
+    "TRY003",
+    "EM101",
+    "EM102",
+    "G004",
+    "PTH",
+    "D211",
+    "D213",
+    "COM812",
+    "ISC001",
+    "D203",
+    "FBT001",
+    "FBT002"
+]

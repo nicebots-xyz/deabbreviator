@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MIT
 
 import nodriver as uc
-
 from bs4 import BeautifulSoup
 
 from .Listing import Listing, NotFoundError
@@ -11,11 +10,11 @@ from .Listing import Listing, NotFoundError
 class DiscordsCom(Listing):
     name: str = "Discords.com"
 
-    def __init__(self, browser: uc.Browser, application_id: int):
+    def __init__(self, browser: uc.Browser, application_id: int) -> None:
         super().__init__(browser)
         self.application_id = application_id
 
-    async def fetch_raw_description(self):
+    async def fetch_raw_description(self) -> str:
         url = f"https://discords.com/bots/bot/{self.application_id}"
         page = await self.browser.get(url)
         description = await page.select("app-bot-page-description")

@@ -2,27 +2,24 @@
 # SPDX-License-Identifier: MIT
 
 import nodriver as uc
-
 from bs4 import BeautifulSoup
 from markdown import markdown
+
 from .Listing import Listing, NotFoundError
 
 
 class DisforgeCom(Listing):
     name: str = "Disforge.com"
 
-    def __init__(self, browser: uc.Browser, url: str):
+    def __init__(self, browser: uc.Browser, url: str) -> None:
         super().__init__(browser)
         self.url = url
 
-    async def fetch_raw_description(self):
+    async def fetch_raw_description(self) -> str:
         page = await self.browser.get(self.url)
         await page.wait(4)
         # if the window location is homepage, then the bot is not found
-        if (
-            len(await page.find_elements_by_text("Vote for this bot", tag_hint="a"))
-            == 0
-        ):
+        if len(await page.find_elements_by_text("Vote for this bot", tag_hint="a")) == 0:
             raise NotFoundError("Listing not found")
         description = await page.select(".card-body")
         html = await description.get_html()
