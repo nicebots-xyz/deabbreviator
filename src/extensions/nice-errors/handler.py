@@ -136,9 +136,9 @@ class ErrorHandler:
             self.error_handlers = DEFAULT_ERROR_HANDLERS
 
     def _get_handler(self, error: Exception) -> ErrorHandlerType | None:
-        if handler := self.error_handlers.get(type(error)): # faster but might miss subclasses
+        if handler := self.error_handlers.get(type(error)):  # faster but might miss subclasses
             return handler
-        for error_type, handler in self.error_handlers.items(): # slower but catches subclasses
+        for error_type, handler in self.error_handlers.items():  # slower but catches subclasses
             if issubclass(type(error), error_type):
                 return handler
         return None
@@ -183,5 +183,6 @@ class ErrorHandler:
 
     def add_error_handler(self, error: type[Exception], handler: ErrorHandlerType) -> None:
         self.error_handlers[error] = handler
+
 
 error_handler = ErrorHandler()

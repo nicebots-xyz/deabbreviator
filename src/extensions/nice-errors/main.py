@@ -51,6 +51,9 @@ class NiceErrors(commands.Cog):
             use_sentry_sdk=self.sentry_sdk,
         )
 
+    def add_error_handler(self, *args: Any, **kwargs: Any) -> None:
+        error_handler.add_error_handler(*args, **kwargs)
+
 
 def setup(bot: custom.Bot, config: dict[str, Any]) -> None:
     bot.add_cog(NiceErrors(bot, bool(config.get("sentry", {}).get("dsn")), config))
