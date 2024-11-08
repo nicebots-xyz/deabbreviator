@@ -19,19 +19,17 @@ dependencies = [
     "pydantic>=2.9.2",
     "coloredlogs>=15.0.1",
     "aiofile>=3.9.0",
+    "sentry-sdk>=2.18.0",
 ]
-requires-python = "==3.11.*"
+requires-python = "==3.12.*"
 readme = "README.md"
 license = {text = "MIT"}
 
-[project.optional-dependencies]
-sentry = [
-    "sentry-sdk>=2.15.0",
-]
+
 [tool.pdm.scripts]
 format = "ruff format ."
 lint = "ruff check --fix ."
-export = "pdm export -o requirements.txt --without-hashes --prod"
+export = "pdm export -o requirements.txt --prod"
 tests = "pytest tests"
 start = "python src"
 check-listings = {call = "scripts:check_listings.main"}
@@ -54,10 +52,10 @@ dev = [
 reportAny = false
 reportUnusedCallResult = false
 reportUnknownMemberType = false
-pythonVersion = "3.11"
+pythonVersion = "3.12"
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 120
 indent-width = 4
 

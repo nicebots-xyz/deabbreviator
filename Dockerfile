@@ -1,33 +1,35 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-# For more information, please refer to https://aka.ms/vscode-docker-python
-FROM python:3.12-slim-bookworm
+ARG PYTHON_VERSION=3.12
+ARG NODE_VERSION=20
+FROM python:${PYTHON_VERSION}-slim-bookworm AS python-base
 
-# Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
-
-# Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
 
-# we move to the app folder and run the pip install command
+RUN pip install -U pdm
+ENV PDM_CHECK_UPDATE=false
+
+WORKDIR /app
+COPY src pyproject.toml pdm.lock ./
+
+RUN pdm export --prod -o requirements.txt
+
+FROM python:${PYTHON_VERSION}-slim-bookworm AS app
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
-
-# we copy just the requirements.txt first to leverage Docker cache
-COPY requirements.txt .
-
-# Install pip requirements
-RUN pip install -r requirements.txt
-
-# Creates a non-root user with an explicit UID and adds permission to access the /app folder
 RUN adduser -u 6392 --disabled-password --gecos "" appuser && chown -R appuser /app
+
+COPY --from=python-base --chown=appuser /app/requirements.txt ./
+COPY src/ ./src
+COPY LICENSE ./
+
+RUN pip install -r requirements.txt --require-hashes
 USER appuser
 
-# We copy the rest of the codebase into the image
-COPY ./ /app/
-
-# We run the application
 CMD ["python", "src"]
