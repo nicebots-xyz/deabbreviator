@@ -76,7 +76,8 @@ docstring-code-line-length = "dynamic"
 
 [tool.ruff.lint]
 select = ["ALL"]
-extend-ignore = ["N999",
+extend-ignore = [
+    "N999",
     "D104",
     "D100",
     "D103",

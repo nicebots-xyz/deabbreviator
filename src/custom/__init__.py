@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 from logging import getLogger
-from typing import Any  # pyright: ignore[reportDeprecated]
+from typing import TYPE_CHECKING, Any, TypeAlias  # pyright: ignore[reportDeprecated]
 
 import discord
 from discord import Message
@@ -79,6 +79,9 @@ class Bot(bridge.Bot):
         return ctx
 
 
-Context = ExtContext | ApplicationContext
+Context: ApplicationContext = ApplicationContext  # pyright: ignore [reportRedeclaration]
+
+if TYPE_CHECKING:  # temp fix for https://github.com/Pycord-Development/pycord/pull/2611
+    Context: TypeAlias = ExtContext | ApplicationContext
 
 __all__ = ["Bot", "Context", "ExtContext", "ApplicationContext"]

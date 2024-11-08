@@ -3,7 +3,7 @@
 
 from typing import Any
 
-from .handler import handle_error
+from .handler import error_handler
 
 
 async def patch(config: dict[str, Any]) -> None:
@@ -43,7 +43,7 @@ async def patch(config: dict[str, Any]) -> None:
             item: Item,  # pyright: ignore[reportMissingTypeArgument,reportUnknownParameterType]
             interaction: Interaction,
         ) -> None:
-            await handle_error(
+            await error_handler.handle_error(
                 error,
                 interaction,
                 raw_translations=config["translations"],

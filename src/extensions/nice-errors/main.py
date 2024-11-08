@@ -5,11 +5,11 @@ from typing import Any
 
 import discord
 from discord.ext import commands
-from schema import Optional, Schema
+from schema import Optional, Schema  # pyright: ignore [reportMissingTypeStubs]
 
 from src import custom
 
-from .handler import handle_error
+from .handler import error_handler
 
 default = {
     "enabled": True,
@@ -35,7 +35,7 @@ class NiceErrors(commands.Cog):
         ctx: custom.ApplicationContext,
         error: discord.ApplicationCommandInvokeError,
     ) -> None:
-        await handle_error(
+        await error_handler.handle_error(
             error,
             ctx,
             raw_translations=self.config["translations"],
@@ -44,7 +44,7 @@ class NiceErrors(commands.Cog):
 
     @discord.Cog.listener("on_command_error")
     async def on_command_error(self, ctx: custom.ExtContext, error: commands.CommandError) -> None:
-        await handle_error(
+        await error_handler.handle_error(
             error,
             ctx,
             raw_translations=self.config["translations"],
