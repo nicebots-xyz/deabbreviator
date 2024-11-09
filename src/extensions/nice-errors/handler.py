@@ -4,11 +4,10 @@
 import contextlib
 import difflib
 from collections.abc import Callable, Coroutine
-from typing import Any, TypeAlias, TypeVar, final
+from typing import Any, TypeVar, final, override
 
 import discord
 from discord.ext import bridge, commands
-from typing_extensions import override
 
 from src import custom
 from src.i18n import apply_locale
@@ -85,12 +84,12 @@ def get_locale(ctx: custom.Context | discord.Interaction) -> str | None:
 
 
 T = TypeVar("T", bound=Coroutine[Any, Any, Any])
-ErrorHandlersIType: TypeAlias = Callable[
+type ErrorHandlersIType[T] = Callable[
     [Exception, discord.Interaction | custom.Context, TranslationWrapper, dict[str, Any], str, bool], T
 ]
-ErrorHandlerRType: TypeAlias = tuple[bool, bool, str, dict[str, Any]]
-ErrorHandlerType: TypeAlias = ErrorHandlersIType[Coroutine[Any, Any, ErrorHandlerRType]]
-ErrorHandlersType: TypeAlias = dict[
+type ErrorHandlerRType = tuple[bool, bool, str, dict[str, Any]]
+type ErrorHandlerType = ErrorHandlersIType[Coroutine[Any, Any, ErrorHandlerRType]]
+type ErrorHandlersType = dict[
     type[Exception],
     ErrorHandlerType,
 ]

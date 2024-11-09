@@ -1,13 +1,12 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-from typing import Any
+from typing import Any, override
 
 import aiohttp
 import discord
 from discord.ext import commands, tasks
 from schema import Optional, Schema
-from typing_extensions import override
 
 from src.log import logger
 
@@ -48,7 +47,7 @@ async def try_post_request(url: str, headers: dict[Any, Any], payload: dict[Any,
 class Listings(commands.Cog):
     def __init__(self, bot: discord.Bot, config: dict[Any, Any]) -> None:
         self.bot: discord.Bot = bot
-        self.config: dict = config
+        self.config: dict[Any, Any] = config
         self.topgg = bool(config.get("topgg_token"))
         self.discordscom = bool(config.get("discordscom_token"))
 
@@ -71,24 +70,28 @@ class Listings(commands.Cog):
             logger.exception("Failed to update count")
 
     async def update_count_discordscom(self) -> None:
-        headers = {
+        headers: dict[str, str] = {
             "Authorization": self.config["discordscom_token"],
             "Content-Type": "application/json",
         }
         payload = {"server_count": len(self.bot.guilds)}
+        if not self.bot.user:
+            return
         url = f"{DISCORDSCOM_BASE_URL}/{self.bot.user.id}/setservers"
         await try_post_request(url, headers, payload)
         logger.info("Updated discords.com count")
 
     async def update_count_topgg(self) -> None:
-        headers = {"Authorization": self.config["topgg_token"]}
+        headers: dict[str, str] = {"Authorization": self.config["topgg_token"]}
         payload = {"server_count": len(self.bot.guilds)}
+        if not self.bot.user:
+            return
         url = f"{TOPGG_BASE_URL}/bots/{self.bot.user.id}/stats"
         await try_post_request(url, headers, payload)
         logger.info("Updated top.gg count")
 
 
-def setup(bot: discord.Bot, config: dict) -> None:
+def setup(bot: discord.Bot, config: dict[Any, Any]) -> None:
     if not config.get("topgg_token") and not config.get("discordscom_token"):
         logger.error("Top.gg or Discords.com token not found")
         return

@@ -1,10 +1,9 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-from typing import Any
+from typing import Any, override
 
 from pydantic import BaseModel, Field
-from typing_extensions import override
 
 LOCALES = (
     "en-US",

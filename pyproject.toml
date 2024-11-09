@@ -49,9 +49,12 @@ dev = [
 ]
 
 [tool.pyright]
+venvPath = "."
+venv = ".venv"
 reportAny = false
 reportUnusedCallResult = false
 reportUnknownMemberType = false
+reportMissingTypeStubs = false
 pythonVersion = "3.12"
 
 [tool.ruff]

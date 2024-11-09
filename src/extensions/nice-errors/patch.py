@@ -30,10 +30,11 @@ async def patch(config: dict[str, Any]) -> None:
             ),
         )
 
+    from typing import override
+
     import discord
     from discord import Interaction
     from discord.ui import Item
-    from typing_extensions import override
 
     class PatchedView(discord.ui.View):
         @override

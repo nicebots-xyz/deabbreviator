@@ -1,6 +1,8 @@
 # Getting Started with Botkit and Pycord: Creating Your First Bot Extension
 
-This comprehensive tutorial will guide you through the process of setting up Botkit, creating your first bot extension using Pycord, and understanding the core concepts of Discord bot development.
+This comprehensive tutorial will guide you through the process of setting up Botkit,
+creating your first bot extension using Pycord, and understanding the core concepts of
+Discord bot development.
 
 ## Prerequisites
 
@@ -10,18 +12,21 @@ Before we begin, ensure you have the following:
 2. Basic understanding of Python and Discord concepts
 3. A Discord account and access to the Discord Developer Portal
 
-> [!IMPORTANT]
-> If you haven't already, create a Discord application and bot user in the [Discord Developer Portal](https://discord.com/developers/applications). You'll need the bot token for later steps.
+> [!IMPORTANT] If you haven't already, create a Discord application and bot user in the
+> [Discord Developer Portal](https://discord.com/developers/applications). You'll need
+> the bot token for later steps.
 
 ## Step 1: Install Git
 
-If you don't have Git installed, you'll need to install it to clone the Botkit repository.
+If you don't have Git installed, you'll need to install it to clone the Botkit
+repository.
 
-1. Visit the [Git website](https://git-scm.com/downloads) and download the appropriate version for your operating system.
+1. Visit the [Git website](https://git-scm.com/downloads) and download the appropriate
+   version for your operating system.
 2. Follow the installation instructions for your OS.
 
-> [!TIP]
-> On Windows, you can use the Git Bash terminal that comes with Git for a Unix-like command-line experience.
+> [!TIP] On Windows, you can use the Git Bash terminal that comes with Git for a
+> Unix-like command-line experience.
 
 To verify Git is installed correctly, open a terminal or command prompt and run:
 
@@ -49,12 +54,13 @@ git clone https://github.com/nicebots-xyz/botkit
 cd botkit
 ```
 
-> [!NOTE]
-> Cloning the repository creates a local copy of Botkit on your machine, allowing you to build your bot using the Botkit framework.
+> [!NOTE] Cloning the repository creates a local copy of Botkit on your machine,
+> allowing you to build your bot using the Botkit framework.
 
 ## Step 3: Set Up a Virtual Environment (Optional but Recommended)
 
-It's a good practice to use a virtual environment for your Python projects. This keeps your project dependencies isolated from your system-wide Python installation.
+It's a good practice to use a virtual environment for your Python projects. This keeps
+your project dependencies isolated from your system-wide Python installation.
 
 1. Create a virtual environment:
 
@@ -63,17 +69,17 @@ python -m venv venv
 ```
 
 2. Activate the virtual environment:
-    - On Windows:
-      ```
-      venv\Scripts\activate
-      ```
-    - On macOS and Linux:
-      ```
-      source venv/bin/activate
-      ```
+   - On Windows:
+     ```
+     venv\Scripts\activate
+     ```
+   - On macOS and Linux:
+     ```
+     source venv/bin/activate
+     ```
 
-> [!TIP]
-> You'll know the virtual environment is active when you see `(venv)` at the beginning of your terminal prompt.
+> [!TIP] You'll know the virtual environment is active when you see `(venv)` at the
+> beginning of your terminal prompt.
 
 ## Step 4: Install Dependencies
 
@@ -91,8 +97,8 @@ pip install pdm
 pdm install
 ```
 
-> [!NOTE]
-> PDM will read the `pyproject.toml` file and install all necessary dependencies for Botkit.
+> [!NOTE] PDM will read the `pyproject.toml` file and install all necessary dependencies
+> for Botkit.
 
 ## Step 5: Configure Your Bot
 
@@ -106,8 +112,8 @@ bot:
 
 Replace `YOUR_BOT_TOKEN_HERE` with the actual token of your Discord bot.
 
-> [!CAUTION]
-> Never share your bot token publicly or commit it to version control. Treat it like a password.
+> [!CAUTION] Never share your bot token publicly or commit it to version control. Treat
+> it like a password.
 
 ## Step 6: Create a New Extension Folder
 
@@ -138,8 +144,9 @@ from .main import setup, default, schema
 __all__ = ["setup", "default", "schema"]
 ```
 
-> [!NOTE]
-> This file imports and exposes the necessary components from our `main.py` file (which we'll create next). It allows Botkit to access these components when loading the extension.
+> [!NOTE] This file imports and exposes the necessary components from our `main.py` file
+> (which we'll create next). It allows Botkit to access these components when loading
+> the extension.
 
 ## Step 8: Create the `main.py` File
 
@@ -177,17 +184,20 @@ schema = {
 Let's break down what we've done here:
 
 - We import the necessary modules from discord and discord.ext.
-- We use `typing` to add type hints, which improves code readability and helps catch errors early.
-- We define a `MyFirstExtension` class that inherits from `commands.Cog`. This class will contain our commands and listeners.
+- We use `typing` to add type hints, which improves code readability and helps catch
+  errors early.
+- We define a `MyFirstExtension` class that inherits from `commands.Cog`. This class
+  will contain our commands and listeners.
 - The `setup` function is required by Botkit to add our cog to the bot.
 - We define `default` and `schema` dictionaries for the extension's configuration.
 
-> [!TIP]
-> Using type hints (like `bot: discord.Bot`) helps catch errors early and improves code readability. It's a good practice to use them consistently in your code.
+> [!TIP] Using type hints (like `bot: discord.Bot`) helps catch errors early and
+> improves code readability. It's a good practice to use them consistently in your code.
 
 ## Step 9: Adding Commands
 
-Now, let's add some commands to our extension. We'll create a simple "hello" command and a more complex "userinfo" command.
+Now, let's add some commands to our extension. We'll create a simple "hello" command and
+a more complex "userinfo" command.
 
 Add the following methods to your `MyFirstExtension` class in `main.py`:
 
@@ -215,22 +225,27 @@ async def userinfo(
 Let's explain these commands:
 
 1. The `hello` command:
-    - Uses the `@discord.slash_command` decorator to create a slash command.
-    - Takes only the `ctx` (context) parameter, which is automatically provided by Discord.
-    - Responds with a greeting using the author's name.
+
+   - Uses the `@discord.slash_command` decorator to create a slash command.
+   - Takes only the `ctx` (context) parameter, which is automatically provided by
+     Discord.
+   - Responds with a greeting using the author's name.
 
 2. The `userinfo` command:
-    - Also uses `@discord.slash_command` to create a slash command.
-    - Takes an optional `user` parameter, which defaults to the command author if not provided.
-    - Creates an embed with various pieces of information about the user.
-    - Responds with the created embed.
+   - Also uses `@discord.slash_command` to create a slash command.
+   - Takes an optional `user` parameter, which defaults to the command author if not
+     provided.
+   - Creates an embed with various pieces of information about the user.
+   - Responds with the created embed.
 
-> [!NOTE]
-> Slash commands are the modern way to create Discord bot commands. They provide better user experience and are easier to discover than traditional prefix-based commands.
+> [!NOTE] Slash commands are the modern way to create Discord bot commands. They provide
+> better user experience and are easier to discover than traditional prefix-based
+> commands.
 
 ## Step 10: Adding an Event Listener
 
-Let's add an event listener to our extension to demonstrate how to respond to Discord events. We'll add a simple listener that logs when the bot is ready.
+Let's add an event listener to our extension to demonstrate how to respond to Discord
+events. We'll add a simple listener that logs when the bot is ready.
 
 Add the following method to your `MyFirstExtension` class in `main.py`:
 
@@ -240,10 +255,11 @@ async def on_ready(self):
     print(f"Bot is ready! Logged in as {self.bot.user}")
 ```
 
-This listener will print a message to the console when the bot has successfully connected to Discord.
+This listener will print a message to the console when the bot has successfully
+connected to Discord.
 
-> [!TIP]
-> Event listeners are great for performing actions based on Discord events, such as when a member joins a server or when a message is deleted.
+> [!TIP] Event listeners are great for performing actions based on Discord events, such
+> as when a member joins a server or when a message is deleted.
 
 ## Step 11: Final `main.py` File
 
@@ -304,25 +320,29 @@ Now that we've created our extension, let's run the bot:
 pdm run start
 ```
 
-> [!IMPORTANT]
-> Ensure your bot token is correctly set in the `config.yml` file before running the bot.
+> [!IMPORTANT] Ensure your bot token is correctly set in the `config.yml` file before
+> running the bot.
 
-If everything is set up correctly, you should see the "Bot is ready!" message in your console, indicating that your bot is now online and ready to respond to commands.
+If everything is set up correctly, you should see the "Bot is ready!" message in your
+console, indicating that your bot is now online and ready to respond to commands.
 
 ## Conclusion
 
-Congratulations! You've now created your first bot extension using Botkit and Pycord. This extension includes:
+Congratulations! You've now created your first bot extension using Botkit and Pycord.
+This extension includes:
 
 1. A simple "hello" slash command
 2. A more complex "userinfo" slash command that creates an embed
 3. An event listener for the "on_ready" event
 
-> [!TIP]
-> To continue improving your bot, consider adding more commands, implementing additional event listeners, or integrating with external APIs or databases.
+> [!TIP] To continue improving your bot, consider adding more commands, implementing
+> additional event listeners, or integrating with external APIs or databases.
 
-> [!WARNING]
-> Always be cautious when handling user data and permissions in your bot. Ensure you're following Discord's Terms of Service and Developer Policy.
+> [!WARNING] Always be cautious when handling user data and permissions in your bot.
+> Ensure you're following Discord's Terms of Service and Developer Policy.
 
-Remember to always use type hinting in your code. It helps with code readability, catches potential errors early, and provides better autocomplete suggestions in many IDEs.
+Remember to always use type hinting in your code. It helps with code readability,
+catches potential errors early, and provides better autocomplete suggestions in many
+IDEs.
 
 Happy coding, and enjoy building your Discord bot!
