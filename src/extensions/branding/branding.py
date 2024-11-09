@@ -141,7 +141,7 @@ class Branding(commands.Cog):
         await self.bot.change_presence(activity=activity)
 
 
-def setup(bot: discord.Bot, config: dict[Any, Any]) -> None:  # noqa: C901
+def setup(bot: discord.Bot, config: dict[Any, Any]) -> None:
     if not config.get("embed") and not config.get("status"):
         logger.warning(
             "Branding extension is enabled but no configuration is provided for embed or status. You can disable this "

@@ -5,10 +5,35 @@
 groups = ["default", "dev"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:0086468197db366b92490df6cb4904829351f850ccd9e2c898421d5a70317afc"
+content_hash = "sha256:53fa6d7cfe418243bec2cfedc2d29ee7f5a9268c607190745da713992a9b21a0"
 
 [[metadata.targets]]
 requires_python = "==3.12.*"
+
+[[package]]
+name = "aiocache"
+version = "0.12.3"
+summary = "multi backend asyncio cache"
+groups = ["default"]
+files = [
+    {file = "aiocache-0.12.3-py2.py3-none-any.whl", hash = "sha256:889086fc24710f431937b87ad3720a289f7fc31c4fd8b68e9f918b9bacd8270d"},
+    {file = "aiocache-0.12.3.tar.gz", hash = "sha256:f528b27bf4d436b497a1d0d1a8f59a542c153ab1e37c3621713cb376d44c4713"},
+]
+
+[[package]]
+name = "aiocache"
+version = "0.12.3"
+extras = ["redis"]
+summary = "multi backend asyncio cache"
+groups = ["default"]
+dependencies = [
+    "aiocache==0.12.3",
+    "redis>=4.2.0",
+]
+files = [
+    {file = "aiocache-0.12.3-py2.py3-none-any.whl", hash = "sha256:889086fc24710f431937b87ad3720a289f7fc31c4fd8b68e9f918b9bacd8270d"},
+    {file = "aiocache-0.12.3.tar.gz", hash = "sha256:f528b27bf4d436b497a1d0d1a8f59a542c153ab1e37c3621713cb376d44c4713"},
+]
 
 [[package]]
 name = "aiofile"
@@ -756,6 +781,20 @@ dependencies = [
 files = [
     {file = "quart-0.19.8-py3-none-any.whl", hash = "sha256:34eeb559014f4e72e093d034cfe203b1a6262e9d3504f826f293090e230609f2"},
     {file = "quart-0.19.8.tar.gz", hash = "sha256:ef567d0be7677c99890d5c6ff30e679699fe7e5fca1a90fa3b6974edd8421794"},
+]
+
+[[package]]
+name = "redis"
+version = "5.2.0"
+requires_python = ">=3.8"
+summary = "Python client for Redis database and key-value store"
+groups = ["default"]
+dependencies = [
+    "async-timeout>=4.0.3; python_full_version < \"3.11.3\"",
+]
+files = [
+    {file = "redis-5.2.0-py3-none-any.whl", hash = "sha256:ae174f2bb3b1bf2b09d54bf3e51fbc1469cf6c10aa03e21141f51969801a7897"},
+    {file = "redis-5.2.0.tar.gz", hash = "sha256:0b1087665a771b1ff2e003aa5bdd354f15a70c9e25d5a7dbf9c722c16528a7b0"},
 ]
 
 [[package]]

@@ -9,6 +9,7 @@ from schema import Schema
 
 from src import custom
 from src.log import logger
+from src.utils.cooldown import cooldown
 
 default = {
     "enabled": True,
@@ -26,6 +27,12 @@ class BridgePing(commands.Cog):
         self.bot = bot
 
     @bridge.bridge_command()
+    @cooldown(
+        key="ping",
+        limit=1,
+        per=5,
+        strong=True,
+    )
     async def ping(
         self,
         ctx: custom.Context,

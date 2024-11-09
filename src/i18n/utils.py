@@ -74,7 +74,7 @@ CommandT = TypeVar(
 )
 
 
-def localize_commands(  # noqa: C901, PLR0912
+def localize_commands(  # noqa: PLR0912
     commands: list[CommandT],
     translations: ExtensionTranslation
     | Deg1CommandTranslation

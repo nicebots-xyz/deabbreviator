@@ -4,6 +4,7 @@
 from logging import getLogger
 from typing import TYPE_CHECKING, Any, override
 
+import aiocache
 import discord
 from discord import Message
 from discord.ext import bridge
@@ -17,9 +18,10 @@ logger = getLogger("bot")
 
 
 class ApplicationContext(bridge.BridgeApplicationContext):
-    def __init__(self, bot: discord.Bot, interaction: discord.Interaction) -> None:
+    def __init__(self, bot: "Bot", interaction: discord.Interaction) -> None:
         self.translations: TranslationWrapper = TranslationWrapper({}, "en-US")  # empty placeholder
         super().__init__(bot=bot, interaction=interaction)
+        self.bot: Bot
 
     @override
     def __setattr__(self, key: Any, value: Any) -> None:
@@ -35,6 +37,7 @@ class ExtContext(bridge.BridgeExtContext):
     def __init__(self, **kwargs: Any) -> None:
         self.translations: TranslationWrapper = TranslationWrapper({}, "en-US")  # empty placeholder
         super().__init__(**kwargs)
+        self.bot: Bot
 
     def load_translations(self) -> None:
         if hasattr(self.command, "translations") and self.command.translations:  # pyright: ignore[reportUnknownArgumentType,reportOptionalMemberAccess,reportAttributeAccessIssue]
@@ -50,6 +53,7 @@ class ExtContext(bridge.BridgeExtContext):
 class Bot(bridge.Bot):
     def __init__(self, *args: Any, **options: Any) -> None:
         self.translations: list[ExtensionTranslation] = options.pop("translations", [])
+        self.cache: aiocache.SimpleMemoryCache | aiocache.RedisCache = aiocache.SimpleMemoryCache()
         super().__init__(*args, **options)
 
         @self.listen(name="on_ready", once=True)
@@ -82,5 +86,6 @@ Context: ApplicationContext = ApplicationContext  # pyright: ignore [reportRedec
 
 if TYPE_CHECKING:  # temp fix for https://github.com/Pycord-Development/pycord/pull/2611
     type Context = ExtContext | ApplicationContext
+    ...  # for some reason, this makes pycharm happy
 
 __all__ = ["Bot", "Context", "ExtContext", "ApplicationContext"]
