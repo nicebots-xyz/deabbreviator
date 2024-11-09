@@ -1,3 +1,6 @@
+# Copyright (c) NiceBots
+# SPDX-License-Identifier: MIT
+
 ci:
   autoupdate_commit_msg: "chore(pre-commit): pre-commit autoupdate"
   autofix_commit_msg: "style(pre-commit): auto fixes from pre-commit.com hooks"
@@ -25,7 +28,10 @@ repos:
         args: [ --fix ]
       # Run the formatter.
       - id: ruff-format
-  - repo: https://github.com/DetachHead/basedpyright-pre-commit-mirror
-    rev: v1.13.0  # or whatever the latest version is at the time
-    hooks:
-      - id: basedpyright
+  -   repo: local
+      hooks:
+        - id: copywrite
+          name: copywrite
+          entry: copywrite headers
+          language: system
+          files: .
