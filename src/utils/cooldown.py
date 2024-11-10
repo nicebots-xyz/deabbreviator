@@ -9,14 +9,13 @@ from typing import Any, Concatenate, cast
 
 from discord.ext import commands
 
-import custom
-from src.custom import Bot, Context
+from src import custom
 
-type ReactiveCooldownSetting[T] = T | Callable[[Bot, Context], T | Coroutine[Any, Any, T]]
+type ReactiveCooldownSetting[T] = T | Callable[[custom.Bot, custom.Context], T | Coroutine[Any, Any, T]]
 type CogCommandFunction[T: commands.Cog, **P] = Callable[Concatenate[T, custom.ApplicationContext, P], Awaitable[None]]
 
 
-async def parse_reactive_setting[T](value: ReactiveCooldownSetting[T], bot: Bot, ctx: Context) -> T:
+async def parse_reactive_setting[T](value: ReactiveCooldownSetting[T], bot: custom.Bot, ctx: custom.Context) -> T:
     if callable(value):
         value = value(bot, ctx)  # pyright: ignore [reportAssignmentType]
         if isawaitable(value):
@@ -56,7 +55,7 @@ def cooldown[C: commands.Cog, **P](
             time_stamps = time_stamps[-limit_value:]
             if len(time_stamps) < limit_value or strong_value:
                 time_stamps = (*time_stamps, now)
-                await cache.set(key_value, time_stamps, namespace="cooldown")
+                await cache.set(key_value, time_stamps, namespace="cooldown", ttl=per_value)
                 limit_value += 1  # to account for the current command
 
             if len(time_stamps) >= limit_value:

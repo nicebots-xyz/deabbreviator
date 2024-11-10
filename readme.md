@@ -402,7 +402,7 @@ are:
   presence and status, and embed aesthetics.
 - [`add-dm`](src/extensions/add-dm/readme.md): An extension to send a direct message to
   the user who adds the bot to a guild.
-- [`nice-errors`](src/extensions/nice-errors/readme.md): An extension to provide
+- [`nice-errors`](src/extensions/nice_errors/readme.md): An extension to provide
   user-friendly error messages during command execution.
 - [`status-post`](src/extensions/status-post/readme.md): An extension to post the bot's
   status to a specified URL.

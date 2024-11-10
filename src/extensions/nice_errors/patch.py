@@ -3,7 +3,7 @@
 
 from typing import Any
 
-from .handler import error_handler
+from .handlers import error_handler
 
 
 async def patch(config: dict[str, Any]) -> None:

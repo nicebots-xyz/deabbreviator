@@ -42,10 +42,10 @@ class ExtContext(bridge.BridgeExtContext):
     def load_translations(self) -> None:
         if hasattr(self.command, "translations") and self.command.translations:  # pyright: ignore[reportUnknownArgumentType,reportOptionalMemberAccess,reportAttributeAccessIssue]
             locale: str | None = None
-            if guild := self.guild:  # pyright: ignore[reportUnnecessaryComparison]
-                locale = guild.preferred_locale  # pyright: ignore[reportFunctionMemberAccess]
+            if guild := self.guild:
+                locale = guild.preferred_locale
             self.translations = apply_locale(
-                self.command.translations,  # pyright: ignore[reportUnknownArgumentType,reportAttributeAccessIssue,reportOptionalMemberAccess]
+                self.command.translations,
                 locale,
             )
 

@@ -1,15 +1,18 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-from typing import Any
+from typing import Any, final
 
 import discord
 from discord.ext import commands
-from schema import Optional, Schema  # pyright: ignore [reportMissingTypeStubs]
+from schema import Optional, Schema
 
 from src import custom
 
-from .handler import error_handler
+from .handlers import error_handler
+from .handlers.forbidden import ForbiddenErrorHandler
+from .handlers.generic import GenericErrorHandler
+from .handlers.not_found import NotFoundErrorHandler
 
 default = {
     "enabled": True,
@@ -23,6 +26,7 @@ schema = Schema(
 )
 
 
+@final
 class NiceErrors(commands.Cog):
     def __init__(self, bot: discord.Bot, sentry_sdk: bool, config: dict[str, Any]) -> None:
         self.bot = bot
@@ -57,3 +61,6 @@ class NiceErrors(commands.Cog):
 
 def setup(bot: custom.Bot, config: dict[str, Any]) -> None:
     bot.add_cog(NiceErrors(bot, bool(config.get("sentry", {}).get("dsn")), config))
+    error_handler.add_error_handler(None, GenericErrorHandler(config["translations"]))
+    error_handler.add_error_handler(commands.CommandNotFound, NotFoundErrorHandler(config["translations"]))
+    error_handler.add_error_handler(discord.Forbidden, ForbiddenErrorHandler(config["translations"]))
