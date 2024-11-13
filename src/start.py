@@ -78,8 +78,10 @@ def load_extensions() -> (
     translations: list[ExtensionTranslation] = []
     for extension in iglob("src/extensions/*"):
         name = splitext(basename(extension))[0]
+        if name.endswith(("_", "_/", ".py")):
+            continue
 
-        its_config = config["extensions"].get(name, {})
+        its_config = config["extensions"].get(name, config["extensions"].get(name.replace("_", "-"), {}))
         module: ModuleType = importlib.import_module(f"src.extensions.{name}")
         if not its_config:
             its_config = module.default
