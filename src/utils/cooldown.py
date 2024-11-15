@@ -11,11 +11,13 @@ from discord.ext import commands
 
 from src import custom
 
-type ReactiveCooldownSetting[T] = T | Callable[[custom.Bot, custom.Context], T | Coroutine[Any, Any, T]]
+type ReactiveCooldownSetting[T: Any] = T | Callable[[custom.Bot, custom.Context], T | Coroutine[Any, Any, T]]
 type CogCommandFunction[T: commands.Cog, **P] = Callable[Concatenate[T, custom.ApplicationContext, P], Awaitable[None]]
 
 
 async def parse_reactive_setting[T](value: ReactiveCooldownSetting[T], bot: custom.Bot, ctx: custom.Context) -> T:
+    if isinstance(value, type):
+        return value  # pyright: ignore [reportReturnType]
     if callable(value):
         value = value(bot, ctx)  # pyright: ignore [reportAssignmentType]
         if isawaitable(value):
@@ -44,12 +46,11 @@ def cooldown[C: commands.Cog, **P](
         @wraps(func)
         async def wrapper(self: C, ctx: custom.ApplicationContext, *args: P.args, **kwargs: P.kwargs) -> None:
             cache = ctx.bot.cache
-            key_value = await parse_reactive_setting(key, ctx.bot, ctx)
-            limit_value = await parse_reactive_setting(limit, ctx.bot, ctx)
-            per_value = await parse_reactive_setting(per, ctx.bot, ctx)
-            strong_value = await parse_reactive_setting(strong, ctx.bot, ctx)
-            cls_value = await parse_reactive_setting(cls, ctx.bot, ctx)
-
+            key_value: str = await parse_reactive_setting(key, ctx.bot, ctx)
+            limit_value: int = await parse_reactive_setting(limit, ctx.bot, ctx)
+            per_value: int = await parse_reactive_setting(per, ctx.bot, ctx)
+            strong_value: bool = await parse_reactive_setting(strong, ctx.bot, ctx)
+            cls_value: type[CooldownExceeded] = await parse_reactive_setting(cls, ctx.bot, ctx)
             now = time.time()
             time_stamps = cast(tuple[float, ...], await cache.get(key_value, default=(), namespace="cooldown"))
             time_stamps = tuple(filter(lambda x: x > now - per_value, time_stamps))
