@@ -12,6 +12,8 @@ def test_ext_schemas() -> None:
     """Test the schemas of all extensions."""
     for ext in iglob("src/extensions/*"):
         name = splitext(basename(ext))[0]
+        if name.endswith(("_", "_/", ".py")):
+            continue
         module = importlib.import_module(f"src.extensions.{name}")
         validate_module(module)
         del module

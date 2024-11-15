@@ -1,7 +1,7 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .handlers import error_handler
 
@@ -30,25 +30,23 @@ async def patch(config: dict[str, Any]) -> None:
             ),
         )
 
-    from typing import override
+    from discord.ui import View
 
-    import discord
-    from discord import Interaction
-    from discord.ui import Item
+    if TYPE_CHECKING:
+        from discord import Interaction
+        from discord.ui import Item
 
-    class PatchedView(discord.ui.View):
-        @override
-        async def on_error(
-            self,
-            error: Exception,
-            item: Item,  # pyright: ignore[reportMissingTypeArgument,reportUnknownParameterType]
-            interaction: Interaction,
-        ) -> None:
-            await error_handler.handle_error(
-                error,
-                interaction,
-                raw_translations=config["translations"],
-                use_sentry_sdk=bool(sentry_sdk),
-            )
+    async def on_error(
+        self: View,  # noqa: ARG001
+        error: Exception,
+        item: "Item[View]",  # noqa: ARG001
+        interaction: "Interaction",
+    ) -> None:
+        await error_handler.handle_error(
+            error,
+            interaction,
+            raw_translations=config["translations"],
+            use_sentry_sdk=bool(sentry_sdk),
+        )
 
-    discord.ui.View = PatchedView
+    View.on_error = on_error

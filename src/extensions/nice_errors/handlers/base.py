@@ -7,15 +7,12 @@ from abc import ABC, abstractmethod
 from typing import Any, final, overload
 
 import discord
+import sentry_sdk
 
 from src import custom
 from src.i18n.classes import RawTranslation, apply_locale
 
 logger = logging.getLogger("bot").getChild("nice_errors").getChild("handlers")
-sentry_sdk = None
-
-with contextlib.suppress(ImportError):
-    import sentry_sdk
 
 
 def _get_locale(ctx: custom.Context | discord.Interaction) -> str | None:
