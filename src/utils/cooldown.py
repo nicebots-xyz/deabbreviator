@@ -50,7 +50,7 @@ def cooldown[C: commands.Cog, **P](
             strong_value = await parse_reactive_setting(strong, ctx.bot, ctx)
 
             now = time.time()
-            time_stamps = cast(tuple[float, ...], await cache.get(key, default=(), namespace="cooldown"))
+            time_stamps = cast(tuple[float, ...], await cache.get(key_value, default=(), namespace="cooldown"))
             time_stamps = tuple(filter(lambda x: x > now - per_value, time_stamps))
             time_stamps = time_stamps[-limit_value:]
             if len(time_stamps) < limit_value or strong_value:

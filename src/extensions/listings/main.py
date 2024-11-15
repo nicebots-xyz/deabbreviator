@@ -36,7 +36,7 @@ async def try_post_request(url: str, headers: dict[Any, Any], payload: dict[Any,
     try:
         await post_request(url, headers, payload)
     except aiohttp.ClientResponseError as e:
-        if e.status == 401:  # noqa: PLR2004
+        if e.status == 401:
             logger.error("Invalid token")
         else:
             logger.error(e)

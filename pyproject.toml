@@ -102,5 +102,6 @@ extend-ignore = [
     "D203",
     "FBT001",
     "FBT002",
+    "PLR2004",
     "C901"
 ]
