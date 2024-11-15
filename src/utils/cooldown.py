@@ -38,7 +38,7 @@ def cooldown[C: commands.Cog, **P](
     limit: ReactiveCooldownSetting[int],
     per: ReactiveCooldownSetting[int],
     strong: ReactiveCooldownSetting[bool] = False,
-    cls: type[CooldownExceeded] = CooldownExceeded,
+    cls: ReactiveCooldownSetting[type[CooldownExceeded]] = CooldownExceeded,
 ) -> Callable[[CogCommandFunction[C, P]], CogCommandFunction[C, P]]:
     def inner(func: CogCommandFunction[C, P]) -> CogCommandFunction[C, P]:
         @wraps(func)
@@ -48,6 +48,7 @@ def cooldown[C: commands.Cog, **P](
             limit_value = await parse_reactive_setting(limit, ctx.bot, ctx)
             per_value = await parse_reactive_setting(per, ctx.bot, ctx)
             strong_value = await parse_reactive_setting(strong, ctx.bot, ctx)
+            cls_value = await parse_reactive_setting(cls, ctx.bot, ctx)
 
             now = time.time()
             time_stamps = cast(tuple[float, ...], await cache.get(key_value, default=(), namespace="cooldown"))
@@ -59,7 +60,7 @@ def cooldown[C: commands.Cog, **P](
                 limit_value += 1  # to account for the current command
 
             if len(time_stamps) >= limit_value:
-                raise cls(min(time_stamps) - now + per_value)
+                raise cls_value(min(time_stamps) - now + per_value)
             await func(self, ctx, *args, **kwargs)
 
         return wrapper
