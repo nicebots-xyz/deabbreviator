@@ -30,7 +30,7 @@ jobs:
   update-deps:
     needs: repo-sync
     if: needs.repo-sync.outputs.pr_branch
-    uses: ./.github/workflows/update-dependencies.yml
+    uses: ./.github/workflows/update_dependencies.yaml
     with:
       pr_branch: ${{ needs.repo-sync.outputs.pr_branch }}
     permissions:
