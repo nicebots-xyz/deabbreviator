@@ -1,4 +1,6 @@
 #file: noinspection SpellCheckingInspection
+name: CI/CD
+
 on:
   push:
     branches: [ "main", "dev" ]
