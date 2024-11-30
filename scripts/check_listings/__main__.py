@@ -8,7 +8,7 @@ from typing import Any
 import markdown
 import nodriver as uc
 import yaml
-from aiofile import async_open as open  # noqa: A001
+from aiofile import async_open as open  # noqa: A004
 from bs4 import BeautifulSoup
 from termcolor import cprint
 

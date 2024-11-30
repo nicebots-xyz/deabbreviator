@@ -3,4 +3,4 @@
 
 from .branding import default, schema, setup
 
-__all__ = ["setup", "default", "schema"]
+__all__ = ["default", "schema", "setup"]

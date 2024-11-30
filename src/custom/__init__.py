@@ -88,4 +88,4 @@ if TYPE_CHECKING:  # temp fix for https://github.com/Pycord-Development/pycord/p
     type Context = ExtContext | ApplicationContext
     ...  # for some reason, this makes pycharm happy
 
-__all__ = ["Bot", "Context", "ExtContext", "ApplicationContext"]
+__all__ = ["ApplicationContext", "Bot", "Context", "ExtContext"]

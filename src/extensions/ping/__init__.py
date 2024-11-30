@@ -3,4 +3,4 @@
 
 from .ping import default, on_startup, schema, setup, setup_webserver
 
-__all__ = ["setup", "setup_webserver", "on_startup", "default", "schema"]
+__all__ = ["default", "on_startup", "schema", "setup", "setup_webserver"]
