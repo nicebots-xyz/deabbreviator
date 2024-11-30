@@ -35,7 +35,7 @@ jobs:
           cache: true
 
       - name: Lock dependencies
-        run: pdm lock
+        run: pdm lock -G :all
 
       - name: Export requirements
         run: pdm run export
