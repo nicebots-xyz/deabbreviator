@@ -1,31 +1,24 @@
-# File: .github/workflows/template-sync.yml
 name: Template Sync
 
 on:
-  # cronjob trigger
   schedule:
     - cron: "0 0 1 * *"
-  # manual trigger
   workflow_dispatch:
+
 jobs:
   repo-sync:
     runs-on: ubuntu-latest
-    # https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs
     permissions:
       contents: write
       pull-requests: write
     if: github.repository != 'nicebots-xyz/botkit'
 
     steps:
-      # To use this repository's private action, you must check out the repository
       - name: Checkout
         uses: actions/checkout@v4
-        # https://github.com/actions/checkout#usage
-        # uncomment if you use submodules within the repository
-        # with:
-        #   submodules: true
 
-      - name: actions-template-sync
+      - name: Template Sync
+        id: template-sync
         uses: AndreasAugustin/actions-template-sync@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -33,3 +26,13 @@ jobs:
           upstream_branch: dev
           pr_commit_msg: "core: :twisted_rightwards_arrows: Merge remote template"
           pr_title: "core: :twisted_rightwards_arrows: Merge remote template"
+
+  update-deps:
+    needs: repo-sync
+    if: needs.repo-sync.outputs.pr_branch
+    uses: ./.github/workflows/update-dependencies.yml
+    with:
+      pr_branch: ${{ needs.repo-sync.outputs.pr_branch }}
+    permissions:
+      contents: write
+      pull-requests: write
