@@ -66,10 +66,3 @@ if path:
         config = yaml.safe_load(f)
 else:
     config = load_from_env()
-
-
-def store_config() -> None:
-    if path:
-        # noinspection PyShadowingNames
-        with open(path, "w", encoding="utf-8") as f:
-            yaml.dump(config, f)

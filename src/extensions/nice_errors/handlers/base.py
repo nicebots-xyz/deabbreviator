@@ -111,7 +111,9 @@ class ErrorHandlerManager:
     def add_error_handler[E: Exception](self, error: type[E], handler: ErrorHandlerType[E]) -> None: ...
 
     def add_error_handler[E: Exception](self, error: type[E] | None, handler: ErrorHandlerType[E | Exception]) -> None:
-        logger.info(f"Adding error handler {handler} for {error if error is not None else 'Generic'}")
+        logger.info(
+            f"Adding error handler {handler.__class__.__qualname__} for {error.__qualname__ if error is not None else 'Generic'}"  # noqa: E501
+        )
         self.error_handlers[error] = handler
 
 

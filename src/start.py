@@ -10,11 +10,12 @@ from typing import TYPE_CHECKING, Any, TypedDict
 
 import discord
 import yaml
+from discord.errors import LoginFailure
 from discord.ext import commands
 from quart import Quart
 
 from src import custom, i18n
-from src.config import config, store_config
+from src.config import config
 from src.i18n.classes import ExtensionTranslation
 from src.log import logger, patch
 from src.utils import setup_func, unzip_extensions, validate_module
@@ -31,7 +32,11 @@ if TYPE_CHECKING:
 
 
 async def start_bot(bot: custom.Bot, token: str) -> None:
-    await bot.start(token)
+    try:
+        await bot.start(token)
+    except LoginFailure as e:
+        logger.critical("Failed to log in, is the bot token valid?")
+        logger.debug("", exc_info=e)
 
 
 async def start_backend(app: Quart, bot: discord.Bot, token: str) -> None:
@@ -72,6 +77,13 @@ def load_extensions() -> (
         "list[ExtensionTranslation]",
     ]
 ):
+    """Load extensions from the extensions directory.
+
+    Returns:
+        tuple[FunctionlistType, FunctionlistType, FunctionlistType, list[ExtensionTranslation]]: A tuple containing
+        the bot functions, backend functions, startup functions, and translations.
+
+    """
     bot_functions: FunctionlistType = []
     back_functions: FunctionlistType = []
     startup_functions: FunctionlistType = []
@@ -157,7 +169,7 @@ async def run_startup_functions(
     await asyncio.gather(*startup_coros)
 
 
-async def main(run_bot: bool | None = None, run_backend: bool | None = None) -> None:
+async def start(run_bot: bool | None = None, run_backend: bool | None = None) -> None:
     if not config.get("bot", {}).get("token"):
         logger.critical("No bot token provided in config, exiting...")
         return
@@ -182,5 +194,3 @@ async def main(run_bot: bool | None = None, run_backend: bool | None = None) -> 
         await run_startup_functions(startup_functions, app, back_bot)
 
     await asyncio.gather(*coros)
-
-    store_config()
