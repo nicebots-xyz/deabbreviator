@@ -23,7 +23,12 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-
+        name: Checkout repository
+      - name: Checkout target branch
+        if: inputs.pr_branch
+        run: |
+          BRANCH_NAME=$(echo ${{ inputs.pr_branch }} | cut -d'/' -f 3)
+          git checkout $BRANCH_NAME
       - name: Setup PDM
         uses: pdm-project/setup-pdm@v4
         with:
