@@ -12,11 +12,12 @@ jobs:
       contents: write
       pull-requests: write
     if: github.repository != 'nicebots-xyz/botkit'
+    outputs:
+      pr_branch: ${{ steps.template-sync.outputs.pr_branch }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Template Sync
         id: template-sync
         uses: AndreasAugustin/actions-template-sync@v2
