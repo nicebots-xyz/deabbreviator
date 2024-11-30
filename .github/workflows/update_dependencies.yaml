@@ -24,11 +24,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         name: Checkout repository
+        with:
+          fetch-depth: 0  # Fetch all history for all branches
       - name: Checkout target branch
         if: inputs.pr_branch
         run: |
-          BRANCH_NAME=$(echo ${{ inputs.pr_branch }} | cut -d'/' -f 3)
+          BRANCH_NAME=$(echo ${{ inputs.pr_branch }} | sed 's|refs/heads/||')
+          git fetch origin $BRANCH_NAME
           git checkout $BRANCH_NAME
+          git pull origin $BRANCH_NAME
+
       - name: Setup PDM
         uses: pdm-project/setup-pdm@v4
         with:
