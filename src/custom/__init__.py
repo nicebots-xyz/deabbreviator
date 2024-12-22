@@ -51,9 +51,33 @@ class ExtContext(bridge.BridgeExtContext):
 
 
 class Bot(bridge.Bot):
-    def __init__(self, *args: Any, **options: Any) -> None:
+    def __init__(
+        self, *args: Any, cache_type: str = "memory", cache_config: dict[str, Any] | None = None, **options: Any
+    ) -> None:
         self.translations: list[ExtensionTranslation] = options.pop("translations", [])
-        self.cache: aiocache.SimpleMemoryCache | aiocache.RedisCache = aiocache.SimpleMemoryCache()
+
+        self.botkit_cache: aiocache.BaseCache
+        # Initialize cache based on type and config
+        if cache_type == "redis":
+            if cache_config:
+                logger.info("Using Redis cache")
+                self.botkit_cache = aiocache.RedisCache(
+                    endpoint=cache_config.get("host", "localhost"),
+                    port=cache_config.get("port", 6379),
+                    db=cache_config.get("db", 0),
+                    password=cache_config.get("password"),
+                    ssl=cache_config.get("ssl", False),
+                    namespace="botkit",
+                )
+            else:
+                logger.warning(
+                    "Redis cache type specified but no configuration provided. Falling back to memory cache."
+                )
+                self.botkit_cache = aiocache.SimpleMemoryCache(namespace="botkit")
+        else:
+            logger.info("Using memory cache")
+            self.botkit_cache = aiocache.SimpleMemoryCache(namespace="botkit")
+
         super().__init__(*args, **options)
 
         @self.listen(name="on_ready", once=True)
