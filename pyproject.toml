@@ -21,6 +21,8 @@ dependencies = [
     "aiofile>=3.9.0",
     "sentry-sdk>=2.18.0",
     "aiocache[redis]>=0.12.3",
+    "tortoise-orm[asyncpg]>=0.23.0",
+    "aerich>=0.8.0",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"
@@ -78,6 +80,7 @@ docstring-code-line-length = "dynamic"
 
 [tool.ruff.lint]
 select = ["ALL"]
+per-file-ignores = { "src/database/migrations/*"= ["INP001", "ARG001"] }
 extend-ignore = [
     "N999",
     "D104",
@@ -104,3 +107,8 @@ extend-ignore = [
     "PLR2004",
     "C901"
 ]
+
+[tool.aerich]
+tortoise_orm = "src.database.config.TORTOISE_ORM"
+location = "./src/database/migrations"
+src_folder = "./."

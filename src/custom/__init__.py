@@ -1,18 +1,22 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
+import contextlib
 from logging import getLogger
 from typing import TYPE_CHECKING, Any, override
 
 import aiocache
 import discord
-from discord import Message
+from discord import Interaction, Message, WebhookMessage
 from discord.ext import bridge
 from discord.ext.bridge import (
     BridgeExtContext,
 )
 
 from src.i18n.classes import ExtensionTranslation, TranslationWrapper, apply_locale
+
+if TYPE_CHECKING:
+    from src.database.models import Guild, User
 
 logger = getLogger("bot")
 
@@ -22,6 +26,8 @@ class ApplicationContext(bridge.BridgeApplicationContext):
         self.translations: TranslationWrapper = TranslationWrapper({}, "en-US")  # empty placeholder
         super().__init__(bot=bot, interaction=interaction)
         self.bot: Bot
+        self.user_obj: User | None = None
+        self.guild_obj: Guild | None = None
 
     @override
     def __setattr__(self, key: Any, value: Any) -> None:
@@ -33,11 +39,17 @@ class ApplicationContext(bridge.BridgeApplicationContext):
         super().__setattr__(key, value)
 
 
+async def remove_reaction(user: discord.User, message: discord.Message, emoji: str) -> None:
+    await message.remove_reaction(emoji, user)
+
+
 class ExtContext(bridge.BridgeExtContext):
     def __init__(self, **kwargs: Any) -> None:
         self.translations: TranslationWrapper = TranslationWrapper({}, "en-US")  # empty placeholder
         super().__init__(**kwargs)
         self.bot: Bot
+        self.user_obj: User | None = None
+        self.guild_obj: Guild | None = None
 
     def load_translations(self) -> None:
         if hasattr(self.command, "translations") and self.command.translations:  # pyright: ignore[reportUnknownArgumentType,reportOptionalMemberAccess,reportAttributeAccessIssue]
@@ -45,9 +57,23 @@ class ExtContext(bridge.BridgeExtContext):
             if guild := self.guild:
                 locale = guild.preferred_locale
             self.translations = apply_locale(
-                self.command.translations,
+                self.command.translations,  # pyright: ignore [reportAttributeAccessIssue, reportOptionalMemberAccess, reportUnknownArgumentType]
                 locale,
             )
+
+    @override
+    async def defer(self, *args: Any, **kwargs: Any) -> None:
+        await super().defer(*args, **kwargs)
+        with contextlib.suppress(Exception):
+            await self.message.add_reaction("🔄")
+
+    @override
+    async def respond(self, *args: Any, **kwargs: Any) -> "Interaction | WebhookMessage | Message":
+        r = await super().respond(*args, **kwargs)
+        with contextlib.suppress(Exception):
+            if self.me:
+                await remove_reaction(self.me, self.message, "🔄")
+        return r
 
 
 class Bot(bridge.Bot):

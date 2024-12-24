@@ -189,6 +189,12 @@ async def start(run_bot: bool | None = None, run_backend: bool | None = None) ->
     if not config.get("bot", {}).get("token"):
         logger.critical("No bot token provided in config, exiting...")
         return
+    if config.get("db", {}).get("enabled", False):
+        from src.database.config import init
+
+        logger.info("Initializing database...")
+        await init()
+
     unzip_extensions()
     run_bot = run_bot if run_bot is not None else config.get("use", {}).get("bot", True)
     run_backend = run_backend if run_backend is not None else config.get("use", {}).get("backend", True)
