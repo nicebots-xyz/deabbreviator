@@ -28,6 +28,7 @@ class ApplicationContext(bridge.BridgeApplicationContext):
         self.bot: Bot
         self.user_obj: User | None = None
         self.guild_obj: Guild | None = None
+        self.custom_attrs: dict[str, Any] = {}
 
     @override
     def __setattr__(self, key: Any, value: Any) -> None:
@@ -50,6 +51,7 @@ class ExtContext(bridge.BridgeExtContext):
         self.bot: Bot
         self.user_obj: User | None = None
         self.guild_obj: Guild | None = None
+        self.custom_attrs: dict[str, Any] = {}
 
     def load_translations(self) -> None:
         if hasattr(self.command, "translations") and self.command.translations:  # pyright: ignore[reportUnknownArgumentType,reportOptionalMemberAccess,reportAttributeAccessIssue]
@@ -132,7 +134,8 @@ class Bot(bridge.Bot):
         return ctx
 
 
-Context: ApplicationContext = ApplicationContext  # pyright: ignore [reportRedeclaration]
+if not TYPE_CHECKING:
+    Context: ApplicationContext = ApplicationContext  # pyright: ignore [reportRedeclaration]
 
 if TYPE_CHECKING:  # temp fix for https://github.com/Pycord-Development/pycord/pull/2611
     type Context = ExtContext | ApplicationContext
