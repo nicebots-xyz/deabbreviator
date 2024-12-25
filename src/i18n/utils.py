@@ -28,9 +28,11 @@ def remove_none(d: dict[T, V]) -> dict[T, V]:
     """Remove None values from a dictionary.
 
     Args:
+    ----
         d (dict[T, V]): The dictionary to remove None values from.
 
     Returns:
+    -------
         dict[T, V]: The dictionary without None values.
 
     """
@@ -43,12 +45,15 @@ def merge_command_translations(
     """Merge command translations into a single dictionary.
 
     Args:
+    ----
         translations (list[ExtensionTranslation]): A list of translations.
 
     Returns:
+    -------
         dict[str, Deg1CommandTranslation] | None: A dictionary of command translations.
 
     Raises:
+    ------
         None
 
     """
@@ -71,6 +76,7 @@ CommandT = TypeVar(
     discord.SlashCommand,
     discord.SlashCommandGroup,
     prefixed.Command,  # pyright: ignore[reportMissingTypeArgument]
+    discord.MessageCommand,
 )
 
 
@@ -85,11 +91,13 @@ def localize_commands(  # noqa: PLR0912
     """Recursively localize commands and their subcommands.
 
     Args:
+    ----
         commands: List of commands to localize.
         translations: Translations for the commands.
         default_locale: The default locale to use.
 
     Returns:
+    -------
         None
 
     """
@@ -97,7 +105,9 @@ def localize_commands(  # noqa: PLR0912
     err = 0
     tot = 0
     for command in commands:
-        if isinstance(command, discord.SlashCommand | discord.SlashCommandGroup | prefixed.Command):
+        if isinstance(
+            command, discord.SlashCommand | discord.SlashCommandGroup | prefixed.Command | discord.MessageCommand
+        ):
             tot += 1
             try:
                 try:
@@ -121,7 +131,7 @@ def localize_commands(  # noqa: PLR0912
                     description = remove_none(translation.description.model_dump(by_alias=True))
                     command.description = description.get(default_locale, command.description)
                     if not isinstance(command, prefixed.Command):
-                        command.description_localizations = description
+                        command.description_localizations = description  # pyright: ignore [reportAttributeAccessIssue]
                 if translation.strings:
                     command.translations = translation.strings  # pyright: ignore[reportAttributeAccessIssue]
                 if isinstance(command, discord.SlashCommand) and translation.options:
@@ -155,12 +165,15 @@ def load_translation(path: str) -> ExtensionTranslation:
     """Load a translation from a file.
 
     Args:
+    ----
         path (str): The path to the translation file.
 
     Returns:
+    -------
         ExtensionTranslation: The loaded translation.
 
     Raises:
+    ------
         yaml.YAMLError: If the file is not a valid YAML file.
 
     """
@@ -177,11 +190,13 @@ def apply(
     """Apply translations to the bot.
 
     Args:
+    ----
         bot: The bot to apply translations to.
         translations: The translations to apply.
         default_locale: The default locale to use.
 
     Returns:
+    -------
         None
 
     """
