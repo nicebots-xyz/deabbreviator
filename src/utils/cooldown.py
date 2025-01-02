@@ -8,12 +8,13 @@ from functools import wraps
 from inspect import isawaitable
 from typing import Any, Concatenate, cast
 
+import discord
 from discord.ext import commands
 
 from src import custom
 
 type ReactiveCooldownSetting[T: Any] = T | Callable[[custom.Bot, custom.Context], T | Coroutine[Any, Any, T]]
-type CogCommandFunction[T: commands.Cog, **P] = Callable[Concatenate[T, custom.ApplicationContext, P], Awaitable[None]]
+type CogCommandFunction[T: commands.Cog, **P] = Callable[Concatenate[T, P], Awaitable[None]]
 
 
 class BucketType(Enum):
@@ -43,24 +44,22 @@ class CooldownExceeded(commands.CheckFailure):
         super().__init__(f"You are on {bucket_type.value} cooldown")
 
 
-def get_bucket_key(ctx: custom.ApplicationContext, base_key: str, bucket_type: BucketType) -> str:  # noqa: PLR0911
+def get_bucket_key(ctx: custom.Context, base_key: str, bucket_type: BucketType) -> str:  # noqa: PLR0911
     """Generate a cooldown key based on the bucket type."""
     match bucket_type:
         case BucketType.USER:
             return f"{base_key}:user:{ctx.author.id}"
         case BucketType.MEMBER:
-            return (
-                f"{base_key}:member:{ctx.guild_id}:{ctx.author.id}" if ctx.guild else f"{base_key}:user:{ctx.author.id}"
-            )
+            return f"{base_key}:member:{ctx.guild}:{ctx.author.id}" if ctx.guild else f"{base_key}:user:{ctx.author.id}"
         case BucketType.GUILD:
-            return f"{base_key}:guild:{ctx.guild_id}" if ctx.guild else base_key
+            return f"{base_key}:guild:{ctx.guild.id}" if ctx.guild else base_key
         case BucketType.CHANNEL:
             return f"{base_key}:channel:{ctx.channel.id}"
         case BucketType.CATEGORY:
             category_id = ctx.channel.category_id if hasattr(ctx.channel, "category_id") else None
             return f"{base_key}:category:{category_id}" if category_id else f"{base_key}:channel:{ctx.channel.id}"
         case BucketType.ROLE:
-            if ctx.guild and hasattr(ctx.author, "roles"):
+            if ctx.guild and hasattr(ctx.author, "roles") and isinstance(ctx.author, discord.Member):
                 top_role_id = max((role.id for role in ctx.author.roles), default=0)
                 return f"{base_key}:role:{top_role_id}"
             return f"{base_key}:user:{ctx.author.id}"
@@ -68,7 +67,7 @@ def get_bucket_key(ctx: custom.ApplicationContext, base_key: str, bucket_type: B
             return base_key
 
 
-def cooldown[C: commands.Cog, **P](  # noqa: PLR0913
+def cooldown[C: commands.Cog, **P](
     key: ReactiveCooldownSetting[str],
     *,
     limit: ReactiveCooldownSetting[int],
@@ -91,7 +90,8 @@ def cooldown[C: commands.Cog, **P](  # noqa: PLR0913
 
     def inner(func: CogCommandFunction[C, P]) -> CogCommandFunction[C, P]:
         @wraps(func)
-        async def wrapper(self: C, ctx: custom.ApplicationContext, *args: P.args, **kwargs: P.kwargs) -> None:
+        async def wrapper(self: C, *args: P.args, **kwargs: P.kwargs) -> None:
+            ctx: custom.Context = args[0]  # pyright: ignore [reportAssignmentType]
             cache = ctx.bot.botkit_cache
             key_value: str = await parse_reactive_setting(key, ctx.bot, ctx)
             limit_value: int = await parse_reactive_setting(limit, ctx.bot, ctx)
@@ -116,7 +116,7 @@ def cooldown[C: commands.Cog, **P](  # noqa: PLR0913
             if len(time_stamps) >= limit_value:
                 raise cls_value(min(time_stamps) - now + per_value, bucket_type_value)
 
-            await func(self, ctx, *args, **kwargs)
+            await func(self, *args, **kwargs)
 
         return wrapper
 
