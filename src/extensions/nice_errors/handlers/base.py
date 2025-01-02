@@ -97,7 +97,7 @@ class ErrorHandlerManager:
             )
             if handled:
                 return
-        if report and use_sentry_sdk and sentry_sdk:
+        if report and use_sentry_sdk:
             out = sentry_sdk.capture_exception(error)
             message += f"\n\n-# {translations.reported_to_devs} - `{out}`"
         await ctx.respond(message, **sendargs)

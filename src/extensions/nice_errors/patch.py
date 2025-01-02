@@ -3,7 +3,11 @@
 
 from typing import TYPE_CHECKING, Any
 
+from src.log import logger as base_logger
+
 from .handlers import error_handler
+
+logger = base_logger.getChild("nice_errors")
 
 
 async def patch(config: dict[str, Any]) -> None:
@@ -29,6 +33,7 @@ async def patch(config: dict[str, Any]) -> None:
                 pii_denylist=[*DEFAULT_PII_DENYLIST, "headers", "kwargs"],
             ),
         )
+        logger.success("Sentry SDK initialized")
 
     from discord.ui import View
 

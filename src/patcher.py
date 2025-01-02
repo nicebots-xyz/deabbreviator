@@ -21,7 +21,9 @@ async def load_and_run_patches() -> None:
         its_config: dict[Any, Any] = {}
         if its_config := (
             config["extensions"].get(extension, config["extensions"].get(extension.replace("_", "-"), {}))
-        ) and its_config.get("enabled", False):
+        ):
+            if not its_config.get("enabled", False):
+                continue
             logger.info(f"Loading patch for extension {extension}")
             spec = importlib.util.spec_from_file_location(f"src.extensions.{extension}.patch", patch_file)
             if not spec or not spec.loader:
