@@ -22,7 +22,7 @@ dependencies = [
     "sentry-sdk>=2.18.0",
     "aiocache[redis]>=0.12.3",
     "tortoise-orm[asyncpg]>=0.23.0",
-    "aerich>=0.8.0",
+    "aerich[toml]>=0.8.1",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"
