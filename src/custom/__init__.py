@@ -13,7 +13,7 @@ from discord.ext.bridge import (
     BridgeExtContext,
 )
 
-from src.i18n.classes import ExtensionTranslation, TranslationWrapper, apply_locale
+from src.i18n.classes import ExtensionTranslation, RawTranslation, TranslationWrapper, apply_locale
 
 if TYPE_CHECKING:
     from src.database.models import Guild, User
@@ -23,7 +23,9 @@ logger = getLogger("bot")
 
 class ApplicationContext(bridge.BridgeApplicationContext):
     def __init__(self, bot: "Bot", interaction: discord.Interaction) -> None:
-        self.translations: TranslationWrapper = TranslationWrapper({}, "en-US")  # empty placeholder
+        self.translations: TranslationWrapper[dict[str, RawTranslation]] = TranslationWrapper(
+            {}, "en-US"
+        )  # empty placeholder
         super().__init__(bot=bot, interaction=interaction)
         self.bot: Bot
         self.user_obj: User | None = None
