@@ -106,6 +106,13 @@ class Deabbreviator(discord.Cog):
         "ffs": "for f***'s sake",
         "fgs": "for god's sake",
         "smth": "something",
+        "idw": "it doesn't work",
+        "idc": "I don't care",
+        "nbd": "no big deal",
+        "nfs": "not for sale",
+        "lgtm": "looks good to me",
+        "lmao": "laughing my a** off",
+        "l8": "late",
     }
 
     def __init__(self, bot: custom.Bot) -> None:
