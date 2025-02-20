@@ -100,6 +100,11 @@ class Deabbreviator(discord.Cog):
         "k": "okay",
         "kk": "okay",
         "ok": "okay",
+        "pfp": "profile picture",
+        "fu": "f*** you",
+        "fml": "f*** my life",
+        "ffs": "for f***'s sake",
+        "fgs": "for god's sake",
     }
 
     def __init__(self, bot: custom.Bot) -> None:
