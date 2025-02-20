@@ -8,4 +8,4 @@ commands:
 
     strings:
       success:
-        en-US: "{message}\n-# [Original message by {user}]({message_link})"
+        en-US: "> {message}\n-# [Original message by {user}]({message_link})"
