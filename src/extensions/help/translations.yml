@@ -1,0 +1,25 @@
+# Copyright (c) NiceBots all rights reserved
+strings:
+  quick_tips_title:
+    en-US: Tips & Tricks
+    es-ES: Consejos y Trucos
+  examples_title:
+    en-US: Usage Examples
+    es-ES: Ejemplos de Uso
+  related_commands_title:
+    en-US: Available Commands
+    es-ES: Comandos Disponibles
+  select_category:
+    en-US: Select a category
+    es-ES: Selecciona una categoría
+  page_indicator:
+    en-US: Page {current} of {total}
+    es-ES: Página {current} de {total}
+commands:
+  help:
+    name:
+      en-US: help
+      es-ES: ayuda
+    description:
+      en-US: Get help with using the bot
+      es-ES: Obtén ayuda para usar el bot

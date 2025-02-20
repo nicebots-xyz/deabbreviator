@@ -1,0 +1,115 @@
+[project]
+name = "botkit"
+version = "0.1.0"
+description = "Botkit: An Advanced Framework for Crafting Sophisticated Discord Bots with py-cord"
+authors = [
+    {name = "Paillat-dev", email = "me@paillat.dev"},
+]
+dependencies = [
+    "py-cord>=2.5.0",
+    "aiohttp>=3.9.5",
+    "pyyaml>=6.0.1",
+    "python-dotenv>=1.0.1",
+    "orjson>=3.10.7",
+    "pytz>=2024.1",
+    "typing-extensions>=4.12.2",
+    "schema>=0.7.7",
+    "hypercorn>=0.17.3",
+    "quart>=0.19.6",
+    "pydantic>=2.9.2",
+    "coloredlogs>=15.0.1",
+    "aiofile>=3.9.0",
+    "sentry-sdk>=2.18.0",
+    "aiocache[redis]>=0.12.3",
+    "tortoise-orm[asyncpg]>=0.23.0",
+    "aerich[toml]>=0.8.1",
+]
+requires-python = "==3.12.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm.scripts]
+format = "ruff format ."
+lint = "ruff check --fix ."
+export = "pdm export -o requirements.txt --prod"
+tests = "pytest tests"
+start = "python src"
+check-listings = {call = "scripts:check_listings.main"}
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "pytest>=8.2.2",
+    "beautifulsoup4>=4.12.3",
+    "nodriver>=0.32",
+    "markdown>=3.6",
+    "termcolor>=2.4.0",
+    "basedpyright>=1.18.3",
+    "ruff>=0.6.9",
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+reportAny = false
+reportUnusedCallResult = false
+reportUnknownMemberType = false
+reportMissingTypeStubs = false
+pythonVersion = "3.12"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+indent-width = 4
+
+[tool.ruff.format]
+quote-style = "double"
+
+indent-style = "space"
+
+skip-magic-trailing-comma = false
+
+line-ending = "auto"
+
+docstring-code-format = false
+
+docstring-code-line-length = "dynamic"
+
+[tool.ruff.lint]
+select = ["ALL"]
+per-file-ignores = { "src/database/migrations/*"= ["INP001", "ARG001"] }
+extend-ignore = [
+    "N999",
+    "D104",
+    "D100",
+    "D103",
+    "D102",
+    "D101",
+    "D107",
+    "D105",
+    "D106",
+    "ANN401",
+    "TRY003",
+    "EM101",
+    "EM102",
+    "G004",
+    "PTH",
+    "D211",
+    "D213",
+    "COM812",
+    "ISC001",
+    "D203",
+    "FBT001",
+    "FBT002",
+    "PLR2004",
+    "PLR0913",
+    "C901"
+]
+
+[tool.aerich]
+tortoise_orm = "src.database.config.TORTOISE_ORM"
+location = "./src/database/migrations"
+src_folder = "./."

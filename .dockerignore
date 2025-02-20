@@ -1,0 +1,5 @@
+.github/
+.gitignore
+config.example.yaml
+readme.md
+renovate.json
