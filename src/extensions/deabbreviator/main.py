@@ -105,6 +105,7 @@ class Deabbreviator(discord.Cog):
         "fml": "f*** my life",
         "ffs": "for f***'s sake",
         "fgs": "for god's sake",
+        "smth": "something",
     }
 
     def __init__(self, bot: custom.Bot) -> None:
