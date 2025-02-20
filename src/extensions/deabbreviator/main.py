@@ -5,14 +5,16 @@ from functools import cached_property
 from typing import Final, final
 
 import discord
+from discord.ext import commands
 
 from src import custom
+from src.utils.cooldown import BucketType, cooldown
 
 default: Final = {"enabled": True}
 
 
 @final
-class Deabbreviator(discord.Cog):
+class Deabbreviator(commands.Cog):
     ABBREVIATIONS: Final = {
         "ngl": "not gonna lie",
         "nvm": "nevermind",
@@ -113,6 +115,10 @@ class Deabbreviator(discord.Cog):
         "lgtm": "looks good to me",
         "lmao": "laughing my a** off",
         "l8": "late",
+        "sys": "see you soon",
+        "sry": "sorry",
+        "ss": "screenshot",
+        "bff": "best friend forever",
     }
 
     def __init__(self, bot: custom.Bot) -> None:
@@ -148,6 +154,7 @@ class Deabbreviator(discord.Cog):
             discord.InteractionContextType.private_channel,
         },
     )
+    @cooldown(key="deabbreviate_message", limit=1, per=5, bucket_type=BucketType.USER)
     async def deabbreviate_message(self, ctx: custom.ApplicationContext, message: discord.Message) -> None:
         await ctx.respond(
             ctx.translations.success.format(
