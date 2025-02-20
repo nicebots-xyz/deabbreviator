@@ -1,51 +1,13 @@
-# Copyright (c) NiceBots.xyz
-# SPDX-License-Identifier: MIT
+# Copyright (c) NiceBots all rights reserved - refer to LICENSE file in the root
 
-#file: noinspection SpellCheckingInspection
-extensions:
-  topgg: # If your discord bot is on top.gg, you can enable this extension to post your stats (server count, shard count, etc.) on top.gg automatically.
-    enabled: false
-    token: "top.gg token here" # https://docs.top.gg/docs/API/@reference/#authentication
-  ping:
-    enabled: true
-  branding:
-    enabled: true
-    embed:
-      footer:
-        value: "By nicebots.xyz"
-        time: true # Include the current time in the footer
-        tz: "Europe/Zurich"
-      author: "Cool Bot"
-      author_url: https://picsum.photos/512
-      color: "#ffffff"
-    status:
-      playing:
-        - "with stuff"
-        - "with things"
-      listening:
-        - "to music"
-        - "to the radio"
-      watching:
-        - "a movie"
-        - "a show"
-        - "/help"
-        - "for commands"
-      streaming:
-        - "on Twitch"
-        - "on YouTube"
-      every: 300 # 300 seconds = 5 minutes
 bot:
-  token: "bot token here" # Your bot token
-  cache:
-    type: "memory" # Cache type. Possible values: "memory" or "redis"
-    redis: # Redis configuration (only used if type is "redis")
-      host: "localhost" # Redis server host
-      port: 6379 # Redis server port
-      db: 0 # Redis database number
-      password: null # Redis password (optional)
-      ssl: false # Whether to use SSL for Redis connection
-logging:
-  level: "INFO" # The logging level. Possible values: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  token: "bot token here"
 use:
-  bot: true # Whether to run the bot
-  backend: false # Whether to run the backend
+  backend: false
+extensions:
+  branding:
+    enabled: false
+  ping:
+    enabled: false
+  topgg:
+    enabled: false

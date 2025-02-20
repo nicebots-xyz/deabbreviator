@@ -1,0 +1,11 @@
+# Copyright (c) NiceBots all rights reserved - refer to LICENSE file in the root
+
+commands:
+  Deabbreviate message:
+    name:
+      en-US:
+        "Deabbreviate message"
+
+    strings:
+      success:
+        en-US: "{message}\n-# [Original message by {user}]({message_link})"

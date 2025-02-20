@@ -1,10 +1,8 @@
 schema_version = 1
 
 project {
-  license        = "MIT"
-  copyright_year = 2024
-  copyright_holder = "NiceBots"
-  header_ignore = [
+  copyright_year = 2025
+  copyright_holder = "NiceBots all rights reserved - refer to LICENSE file in the root"  header_ignore = [
     ".venv/**",
     "logs/**",
     ".idea/**",
