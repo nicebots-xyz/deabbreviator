@@ -2,7 +2,7 @@
 
 import re
 from functools import cached_property
-from typing import Final, final
+from typing import Any, Final, cast, final
 
 import discord
 from discord.ext import commands
@@ -119,6 +119,7 @@ class Deabbreviator(commands.Cog):
         "sry": "sorry",
         "ss": "screenshot",
         "bff": "best friend forever",
+        "sya": "see you again",
     }
 
     def __init__(self, bot: custom.Bot) -> None:
@@ -145,6 +146,14 @@ class Deabbreviator(commands.Cog):
         pattern = r"\b(" + "|".join(escaped_words) + r")\b"
         return re.compile(pattern, flags=re.IGNORECASE)
 
+    async def async_translate_string(self, text: str) -> str:
+        t: Any = None  # pyright: ignore[reportExplicitAny]
+        if t := await self.bot.botkit_cache.get(text, namespace="deabbreviator"):
+            return cast(str, t)
+        t = self.translate_string(text)
+        await self.bot.botkit_cache.set(text, t, namespace="deabbreviator", ttl=60 * 60)
+        return cast(str, t)
+
     @discord.message_command(  # pyright: ignore[reportUntypedFunctionDecorator]
         name="Deabbreviate message",
         integration_types={discord.IntegrationType.guild_install, discord.IntegrationType.user_install},
@@ -156,13 +165,28 @@ class Deabbreviator(commands.Cog):
     )
     @cooldown(key="deabbreviate_message", limit=1, per=5, bucket_type=BucketType.USER)
     async def deabbreviate_message(self, ctx: custom.ApplicationContext, message: discord.Message) -> None:
-        await ctx.respond(
-            ctx.translations.success.format(
-                message=self.translate_string(message.content),
-                user=message.author.display_name,
-                message_link=message.jump_url,
-            )
-        )
+        a: str = await self.async_translate_string(message.content)
+        if a == message.content:
+            await ctx.respond(ctx.translations.no_abbreviations)
+            return
+        await ctx.respond(ctx.translations.success.format(message=a, user=message.author.display_name))
+
+    @discord.slash_command(  # pyright: ignore[reportUntypedFunctionDecorator]
+        name="deabbreviate",
+        integration_types={discord.IntegrationType.guild_install, discord.IntegrationType.user_install},
+        contexts={
+            discord.InteractionContextType.guild,
+            discord.InteractionContextType.bot_dm,
+            discord.InteractionContextType.private_channel,
+        },
+    )
+    @cooldown(key="deabbreviate", limit=1, per=5, bucket_type=BucketType.USER)
+    async def deabbreviate(self, ctx: custom.ApplicationContext, text: str) -> None:
+        a: str = await self.async_translate_string(text)
+        if a == text:
+            await ctx.respond(ctx.translations.no_abbreviations)
+            return
+        await ctx.respond(a)  # slash commands do not have an original message to reference
 
 
 def setup(bot: custom.Bot) -> None:

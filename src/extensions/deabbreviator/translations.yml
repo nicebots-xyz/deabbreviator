@@ -8,4 +8,23 @@ commands:
 
     strings:
       success:
-        en-US: "> {message}\n-# [Original message by {user}]({message_link})"
+        en-US: "{message}\n-# [Original message by {user}]({message_link})"
+      no_abbreviations:
+        en-US: "No abbreviations were found in the message. If you think this is a mistake, please [let us know](<https://github.com/nicebots-xyz/deabbreviator>)."
+      max_length:
+        en-US: "The message is too long to deabbreviate. Please shorten it and try again."
+  deabbreviate:
+    name:
+      en-US:
+        "deabbreviate"
+    description:
+      en-US:
+        "Deabbreviate a message"
+
+    strings:
+      success:
+        en-US: "{message}\n-# [Original message by {user}]({message_link})"
+      no_abbreviations:
+        en-US: "No abbreviations were found in the message. If you think this is a mistake, please [let us know](<https://github.com/nicebots-xyz/deabbreviator>)."
+      max_length:
+        en-US: "The message is too long to deabbreviate. Please shorten it and try again."
