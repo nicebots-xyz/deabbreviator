@@ -24,3 +24,8 @@ jobs:
       packages: write
       id-token: write
     uses: ./.github/workflows/docker.yaml
+
+  deploy:
+    needs: docker
+    uses: ./.github/workflows/deploy.yaml
+    secrets: inherit
