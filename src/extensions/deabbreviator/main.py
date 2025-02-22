@@ -169,7 +169,9 @@ class Deabbreviator(commands.Cog):
         if a == message.content:
             await ctx.respond(ctx.translations.no_abbreviations)
             return
-        await ctx.respond(ctx.translations.success.format(message=a, user=message.author.display_name))
+        await ctx.respond(
+            ctx.translations.success.format(message=a, user=message.author.display_name, message_link=message.jump_url)
+        )
 
     @discord.slash_command(  # pyright: ignore[reportUntypedFunctionDecorator]
         name="deabbreviate",
