@@ -120,6 +120,8 @@ class Deabbreviator(commands.Cog):
         "ss": "screenshot",
         "bff": "best friend forever",
         "sya": "see you again",
+        "sup": "what's up",
+        "bro": "brother",
     }
 
     def __init__(self, bot: custom.Bot) -> None:
