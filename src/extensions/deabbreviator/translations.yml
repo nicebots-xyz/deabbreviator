@@ -10,7 +10,7 @@ commands:
       success:
         en-US: "{message}\n-# [Original message by {user}]({message_link})"
       no_abbreviations:
-        en-US: "No abbreviations were found in the message. If you think this is a mistake, please [let us know](<https://github.com/nicebots-xyz/deabbreviator>)."
+        en-US: "No abbreviations were found in the message. If you think this is a mistake, please [let us know](<https://nicebots.xyz/discord>)."
       max_length:
         en-US: "The message is too long to deabbreviate. Please shorten it and try again."
   deabbreviate:
@@ -25,6 +25,6 @@ commands:
       success:
         en-US: "{message}\n-# [Original message by {user}]({message_link})"
       no_abbreviations:
-        en-US: "No abbreviations were found in the message. If you think this is a mistake, please [let us know](<https://github.com/nicebots-xyz/deabbreviator>)."
+        en-US: "No abbreviations were found in the message. If you think this is a mistake, please [let us know](<https://nicebots.xyz/discord>)."
       max_length:
         en-US: "The message is too long to deabbreviate. Please shorten it and try again."
