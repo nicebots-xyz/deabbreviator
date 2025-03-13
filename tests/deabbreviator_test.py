@@ -9,7 +9,7 @@ from src.extensions.deabbreviator.main import Deabbreviator
 
 @pytest.fixture
 def deabbreviator() -> Deabbreviator:
-    return Deabbreviator(custom.Bot())
+    return Deabbreviator(custom.CustomRestBot())
 
 
 def test_all_keys(deabbreviator: Deabbreviator) -> None:
