@@ -9,6 +9,8 @@ import orjson
 import yaml
 from dotenv import load_dotenv
 
+from .models import Config
+
 load_dotenv()
 
 SPLIT: str = "__"
@@ -59,10 +61,12 @@ if os.path.exists("config.yaml"):
 elif os.path.exists("config.yml"):
     path = "config.yml"
 
-config: dict[str, dict[str, Any]]
+_config: Any
+config: Config
 if path:
-    # noinspection PyArgumentEqualDefault
     with open(path, encoding="utf-8") as f:
-        config = yaml.safe_load(f)
+        _config = yaml.safe_load(f)
 else:
-    config = load_from_env()
+    _config = load_from_env()
+
+config = Config(**_config) if _config else Config()

@@ -7,12 +7,16 @@ from typing import TYPE_CHECKING, Any, override
 
 import aiocache
 import discord
+import pycord_rest
+import uvicorn
 from discord import Interaction, Message, WebhookMessage
 from discord.ext import bridge
 from discord.ext.bridge import (
     BridgeExtContext,
 )
 
+from src import log
+from src.config.models import RedisConfig
 from src.i18n.classes import ExtensionTranslation, RawTranslation, TranslationWrapper, apply_locale
 
 if TYPE_CHECKING:
@@ -80,9 +84,11 @@ class ExtContext(bridge.BridgeExtContext):
         return r
 
 
-class Bot(bridge.Bot):
+class CustomBot(bridge.Bot):
+    __rest__: bool = False
+
     def __init__(
-        self, *args: Any, cache_type: str = "memory", cache_config: dict[str, Any] | None = None, **options: Any
+        self, *args: Any, cache_type: str = "memory", cache_config: RedisConfig | None = None, **options: Any
     ) -> None:
         self.translations: list[ExtensionTranslation] = options.pop("translations", [])
 
@@ -177,6 +183,34 @@ class Bot(bridge.Bot):
         self._connection._intents.value = value.value  # noqa: SLF001  # pyright: ignore [reportPrivateUsage]
 
 
+class CustomUvicornConfig(uvicorn.Config):
+    @override
+    def configure_logging(self) -> None:
+        super().configure_logging()
+        log.patch("uvicorn")
+        log.patch("uvicorn.asgi")
+        log.patch("uvicorn.error")
+        log.patch("uvicorn.access")
+
+
+class CustomRestBot(pycord_rest.Bot, CustomBot):  # pyright: ignore[reportIncompatibleMethodOverride,reportUnsafeMultipleInheritance]
+    __rest__: bool = True
+
+    _UvicornConfig: type[uvicorn.Config] = CustomUvicornConfig
+
+    def __init__(
+        self, *args: Any, cache_type: str = "memory", cache_config: RedisConfig | None = None, **options: Any
+    ) -> None:
+        CustomBot.__init__(self, *args, cache_type=cache_type, cache_config=cache_config, **options)
+        pycord_rest.Bot.__init__(self, *args, **options)
+
+        @self.listen(name="on_connect", once=True)
+        async def on_connect() -> None:
+            logger.success("Rest Bot connected successfully")  # pyright: ignore[reportAttributeAccessIssue]
+
+
+type Bot = CustomBot | CustomRestBot
+
 if not TYPE_CHECKING:
     Context: ApplicationContext = ApplicationContext
 
@@ -184,4 +218,4 @@ if TYPE_CHECKING:  # temp fix for https://github.com/Pycord-Development/pycord/p
     type Context = ExtContext | ApplicationContext
     ...  # for some reason, this makes pycharm happy
 
-__all__ = ["ApplicationContext", "Bot", "Context", "ExtContext"]
+__all__ = ["ApplicationContext", "Bot", "Context", "CustomBot", "CustomRestBot", "ExtContext"]
