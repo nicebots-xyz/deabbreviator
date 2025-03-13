@@ -40,13 +40,23 @@ class SlashConfig(BaseModel):
         return self.enabled
 
 
+class RestConfig(BaseModel):
+    enabled: bool = False
+    health: bool = False
+    host: str = "0.0.0.0"  # noqa: S104
+    port: int = 6000
+
+    def __bool__(self) -> bool:
+        return self.enabled
+
+
 class BotConfig(BaseModel):
     token: str
     public_key: str | None = None
     prefix: PrefixConfig | str = PrefixConfig(prefix="!", enabled=False)
     slash: SlashConfig = SlashConfig(enabled=False)
     cache: CacheConfig = CacheConfig()
-    rest: bool = False
+    rest: RestConfig = RestConfig()
 
 
 class LoggingConfig(BaseModel):

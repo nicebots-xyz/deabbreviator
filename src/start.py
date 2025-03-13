@@ -16,7 +16,7 @@ from quart import Quart
 
 from src import custom, i18n
 from src.config import config
-from src.config.models import BotConfig, Extension
+from src.config.models import BotConfig, Extension, RestConfig
 from src.i18n.classes import ExtensionTranslation
 from src.log import logger, patch
 from src.utils import setup_func, unzip_extensions, validate_module
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     FunctionlistType = list[tuple[Callable[..., Any], Extension]]
 
 
-async def start_bot(bot: custom.Bot, token: str, public_key: str | None = None) -> None:
+async def start_bot(bot: custom.Bot, token: str, rest_config: RestConfig, public_key: str | None = None) -> None:
     try:
         if isinstance(bot, custom.CustomRestBot):
             if not public_key:
@@ -36,9 +36,10 @@ async def start_bot(bot: custom.Bot, token: str, public_key: str | None = None) 
             await bot.start(
                 token=token,
                 public_key=public_key,
+                health=rest_config.health,
                 uvicorn_options={
-                    "host": "0.0.0.0",  # noqa: S104
-                    "port": 6000,
+                    "host": rest_config.host,
+                    "port": rest_config.port,
                 },
             )
         else:
@@ -172,7 +173,7 @@ async def setup_and_start_bot(
         bot.prefixed_commands = {}
     if not config.slash:
         bot._pending_application_commands = []  # pyright: ignore[reportPrivateUsage]
-    await start_bot(bot, config.token, config.public_key)
+    await start_bot(bot, config.token, config.rest, config.public_key)
 
 
 async def setup_and_start_backend(
