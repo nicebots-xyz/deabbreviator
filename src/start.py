@@ -33,7 +33,14 @@ async def start_bot(bot: custom.Bot, token: str, public_key: str | None = None) 
         if isinstance(bot, custom.CustomRestBot):
             if not public_key:
                 raise TypeError("CustomRestBot requires a public key to start.")  # noqa: TRY301
-            await bot.start(token=token, public_key=public_key)
+            await bot.start(
+                token=token,
+                public_key=public_key,
+                uvicorn_options={
+                    "host": "0.0.0.0",  # noqa: S104
+                    "port": 6000,
+                },
+            )
         else:
             await bot.start(token)
     except LoginFailure as e:
