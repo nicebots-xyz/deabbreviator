@@ -121,7 +121,7 @@ def load_extensions() -> tuple[
             logger.debug("", exc_info=e)
             continue
 
-        its_config = its_config or cast(Extension, module.default)
+        its_config = its_config or cast("Extension", module.default)
         if not its_config.get("enabled"):
             del module
             continue
