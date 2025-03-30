@@ -3,6 +3,7 @@
 
 import contextlib
 import os
+from collections import defaultdict
 from typing import Any
 
 import orjson
@@ -16,19 +17,14 @@ load_dotenv()
 SPLIT: str = "__"
 
 
-def load_from_env() -> dict[str, dict[str, Any]]:
-    _config: dict[str, Any] = {}
-    values = {k: v for k, v in os.environ.items() if k.startswith(f"BOTKIT{SPLIT}")}
-    values = {k[len(f"BOTKIT{SPLIT}") :]: v for k, v in values.items()}
-    current: dict[str, Any] = {}
+def load_from_env() -> dict[str, Any]:  # pyright: ignore [reportExplicitAny]
+    _config: dict[str, Any] = {}  # pyright: ignore [reportExplicitAny]
+    values = {k: v for k, v in os.environ.items() if k.startswith("BOTKIT__")}
     for key, value in values.items():
-        for i, part in enumerate(key.split(SPLIT)):
-            part = part.lower()  # noqa: PLW2901
-            if i == 0:
-                if part not in _config:
-                    _config[part] = {}
-                current = _config[part]
-            elif i == len(key.split(SPLIT)) - 1:
+        parts = key[len("BOTKIT__") :].lower().split("__")
+        current = _config
+        for i, part in enumerate(parts):
+            if i == len(parts) - 1:
                 current[part] = value
             else:
                 if part not in current:
@@ -49,6 +45,9 @@ def load_json_recursive(data: dict[str, Any]) -> dict[str, Any]:
                 data[key] = True
             elif value.lower() == "false":
                 data[key] = False
+            elif value.startswith("0x"):
+                with contextlib.suppress(ValueError):
+                    data[key] = int(value, 16)
             else:
                 with contextlib.suppress(orjson.JSONDecodeError):
                     data[key] = orjson.loads(value)
@@ -61,12 +60,22 @@ if os.path.exists("config.yaml"):
 elif os.path.exists("config.yml"):
     path = "config.yml"
 
-_config: Any
+_config: dict[str, Any] = defaultdict(dict)  # pyright: ignore [reportExplicitAny]
 config: Config
+
+
+def merge_dicts(dct: dict[str, Any], merge_dct: dict[str, Any]) -> None:  # pyright: ignore [reportExplicitAny]
+    for k, v in merge_dct.items():
+        if isinstance(dct.get(k), dict) and isinstance(v, dict):
+            merge_dicts(dct[k], v)
+        else:
+            dct[k] = v
+
+
 if path:
     with open(path, encoding="utf-8") as f:
-        _config = yaml.safe_load(f)
-else:
-    _config = load_from_env()
+        _config.update(yaml.safe_load(f))
+
+merge_dicts(_config, load_from_env())
 
 config = Config(**_config) if _config else Config()

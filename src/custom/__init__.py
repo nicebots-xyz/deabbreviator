@@ -98,11 +98,11 @@ class CustomBot(bridge.Bot):
             if cache_config:
                 logger.info("Using Redis cache")
                 self.botkit_cache = aiocache.RedisCache(
-                    endpoint=cache_config.get("host", "localhost"),
-                    port=cache_config.get("port", 6379),
-                    db=cache_config.get("db", 0),
-                    password=cache_config.get("password"),
-                    ssl=cache_config.get("ssl", False),
+                    endpoint=cache_config.host,
+                    port=cache_config.port,
+                    db=cache_config.db,
+                    password=cache_config.password,
+                    ssl=cache_config.ssl,
                     namespace="botkit",
                 )
             else:

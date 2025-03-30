@@ -151,10 +151,10 @@ class Deabbreviator(commands.Cog):
     async def async_translate_string(self, text: str) -> str:
         t: Any = None  # pyright: ignore[reportExplicitAny]
         if t := await self.bot.botkit_cache.get(text, namespace="deabbreviator"):
-            return cast(str, t)
+            return cast("str", t)
         t = self.translate_string(text)
         await self.bot.botkit_cache.set(text, t, namespace="deabbreviator", ttl=60 * 60)
-        return cast(str, t)
+        return cast("str", t)
 
     @discord.message_command(  # pyright: ignore[reportUntypedFunctionDecorator]
         name="Deabbreviate message",
