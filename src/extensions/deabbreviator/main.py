@@ -122,6 +122,13 @@ class Deabbreviator(commands.Cog):
         "sya": "see you again",
         "sup": "what's up",
         "bro": "brother",
+        "fe": "fair enough",
+        "fy": "f*** you",
+        "fyp": "for you page",
+        "fomo": "fear of missing out",
+        "vc": "voice chat",
+        "tbh": "to be honest",
+        "tbf": "to be fair",
     }
 
     def __init__(self, bot: custom.Bot) -> None:
