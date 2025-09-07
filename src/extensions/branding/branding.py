@@ -9,7 +9,6 @@ from typing import Any
 import discord
 import pytz
 from discord.ext import commands, tasks
-from schema import And, Optional, Or, Schema
 from typing_extensions import TypedDict
 
 from src.log import logger
@@ -35,43 +34,6 @@ default: dict = {
         "author_url": "https://picsum.photos/512",
     },
 }
-
-status_schema = Schema(
-    {
-        Optional("playing"): Or(str, list[str]),
-        Optional("watching"): Or(str, list[str]),
-        Optional("listening"): Or(str, list[str]),
-        Optional("streaming"): Or(str, list[str]),
-        Optional("every"): And(int, lambda n: n > 0),
-    },
-)
-
-embed_config_schema = Schema(
-    {
-        "footer": Optional(
-            {
-                "value": Or(str, list[str]),
-                Optional("time"): bool,
-                Optional("tz"): And(str, lambda s: s in pytz.all_timezones),
-                Optional("separator"): str,
-            },
-        ),
-        Optional("color"): Or(str, int),
-        Optional("author_url"): str,
-        Optional("author"): str,
-    },
-)
-
-schema = Schema(
-    {
-        "enabled": bool,
-        Optional("embed"): embed_config_schema,
-        Optional("status"): And(
-            status_schema,
-            lambda s: any(k in ["playing", "watching", "listening", "streaming"] for k in s),
-        ),
-    },
-)
 
 
 class Footer(TypedDict):

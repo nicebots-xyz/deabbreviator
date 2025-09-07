@@ -1,7 +1,7 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 import discord
 import yaml
@@ -20,11 +20,7 @@ if TYPE_CHECKING:
 logger = main_logger.getChild("i18n")
 
 
-T = TypeVar("T")
-V = TypeVar("V")
-
-
-def remove_none(d: dict[T, V]) -> dict[T, V]:
+def remove_none[T, V](d: dict[T, V]) -> dict[T, V]:
     """Remove None values from a dictionary.
 
     Args:
@@ -70,18 +66,16 @@ def merge_command_translations(
     return result
 
 
-CommandT = TypeVar(
-    "CommandT",
-    discord.ApplicationCommand,  # pyright: ignore[reportMissingTypeArgument]
-    discord.SlashCommand,
-    discord.SlashCommandGroup,
-    prefixed.Command,  # pyright: ignore[reportMissingTypeArgument]
-    discord.MessageCommand,
-)
-
-
-def localize_commands(  # noqa: PLR0912
-    commands: list[CommandT],
+def localize_commands[  # noqa: PLR0912
+    T: (
+        discord.ApplicationCommand,  # pyright: ignore[reportMissingTypeArgument]
+        discord.SlashCommand,
+        discord.SlashCommandGroup,
+        prefixed.Command,  # pyright: ignore[reportMissingTypeArgument]
+        discord.MessageCommand,
+    )
+](
+    commands: list[T],
     translations: ExtensionTranslation
     | Deg1CommandTranslation
     | Deg2CommandTranslation

@@ -26,10 +26,12 @@ WORKDIR /app
 RUN adduser -u 6392 --disabled-password --gecos "" appuser && chown -R appuser /app
 
 COPY --from=python-base --chown=appuser /app/requirements.txt ./
-COPY src/ ./src
-COPY LICENSE ./
 
-RUN pip install -r requirements.txt --require-hashes
+RUN pip install -r requirements.txt
+
+COPY --chown=appuser src/ ./src
+COPY --chown=appuser LICENSE ./
+
 USER appuser
 
 CMD ["python", "src"]

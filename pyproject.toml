@@ -6,14 +6,12 @@ authors = [
     {name = "Paillat-dev", email = "me@paillat.dev"},
 ]
 dependencies = [
-    "py-cord>=2.5.0",
     "aiohttp>=3.9.5",
     "pyyaml>=6.0.1",
     "python-dotenv>=1.0.1",
     "orjson>=3.10.7",
     "pytz>=2024.1",
     "typing-extensions>=4.12.2",
-    "schema>=0.7.7",
     "hypercorn>=0.17.3",
     "quart>=0.19.6",
     "pydantic>=2.10.6",
@@ -23,7 +21,8 @@ dependencies = [
     "aiocache[redis]>=0.12.3",
     "tortoise-orm[asyncpg]>=0.23.0",
     "aerich[toml]>=0.8.1",
-    "pycord-rest-bot>=0.1.0a7",
+    "py-cord>=2.7.0rc1",
+    "pycord-rest-bot>=0.1.3",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"
@@ -108,7 +107,8 @@ extend-ignore = [
     "FBT002",
     "PLR2004",
     "PLR0913",
-    "C901"
+    "C901",
+    "RUF200"
 ]
 
 [tool.aerich]

@@ -12,18 +12,19 @@ logger = base_logger.getChild("nice_errors")
 
 async def patch(config: dict[str, Any]) -> None:
     sentry_sdk = None
-    if config.get("sentry", {}).get("dsn"):
-        import sentry_sdk
-        from sentry_sdk.integrations.asyncio import AsyncioIntegration
-        from sentry_sdk.integrations.logging import LoggingIntegration
-        from sentry_sdk.scrubber import (
+    if (sentry_config := config.get("sentry", {})).get("dsn"):
+        import sentry_sdk  # noqa: PLC0415
+        from sentry_sdk.integrations.asyncio import AsyncioIntegration  # noqa: PLC0415
+        from sentry_sdk.integrations.logging import LoggingIntegration  # noqa: PLC0415
+        from sentry_sdk.scrubber import (  # noqa: PLC0415
             DEFAULT_DENYLIST,
             DEFAULT_PII_DENYLIST,
             EventScrubber,
         )
 
         sentry_sdk.init(
-            dsn=config["sentry"]["dsn"],
+            dsn=sentry_config["dsn"],
+            environment=sentry_config.get("environment", "production"),
             integrations=[
                 AsyncioIntegration(),
                 LoggingIntegration(),
@@ -35,11 +36,11 @@ async def patch(config: dict[str, Any]) -> None:
         )
         logger.success("Sentry SDK initialized")
 
-    from discord.ui import View
+    from discord.ui import View  # noqa: PLC0415
 
     if TYPE_CHECKING:
-        from discord import Interaction
-        from discord.ui import Item
+        from discord import Interaction  # noqa: PLC0415
+        from discord.ui import Item  # noqa: PLC0415
 
     async def on_error(
         self: View,  # noqa: ARG001

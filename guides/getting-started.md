@@ -12,7 +12,9 @@ Before we begin, ensure you have the following:
 2. Basic understanding of Python and Discord concepts
 3. A Discord account and access to the Discord Developer Portal
 
-> [!IMPORTANT] If you haven't already, create a Discord application and bot user in the
+<!-- prettier-ignore -->
+> [!TIP]
+> If you haven't already, create a Discord application and bot user in the
 > [Discord Developer Portal](https://discord.com/developers/applications). You'll need
 > the bot token for later steps.
 
@@ -25,7 +27,9 @@ repository.
    version for your operating system.
 2. Follow the installation instructions for your OS.
 
-> [!TIP] On Windows, you can use the Git Bash terminal that comes with Git for a
+<!-- prettier-ignore -->
+> [!TIP]
+> On Windows, you can use the Git Bash terminal that comes with Git for a
 > Unix-like command-line experience.
 
 To verify Git is installed correctly, open a terminal or command prompt and run:
@@ -54,34 +58,12 @@ git clone https://github.com/nicebots-xyz/botkit
 cd botkit
 ```
 
-> [!NOTE] Cloning the repository creates a local copy of Botkit on your machine,
+<!-- prettier-ignore -->
+> [!INFO]
+> Cloning the repository creates a local copy of Botkit on your machine,
 > allowing you to build your bot using the Botkit framework.
 
-## Step 3: Set Up a Virtual Environment (Optional but Recommended)
-
-It's a good practice to use a virtual environment for your Python projects. This keeps
-your project dependencies isolated from your system-wide Python installation.
-
-1. Create a virtual environment:
-
-```bash
-python -m venv venv
-```
-
-2. Activate the virtual environment:
-   - On Windows:
-     ```
-     venv\Scripts\activate
-     ```
-   - On macOS and Linux:
-     ```
-     source venv/bin/activate
-     ```
-
-> [!TIP] You'll know the virtual environment is active when you see `(venv)` at the
-> beginning of your terminal prompt.
-
-## Step 4: Install Dependencies
+## Step 3: Install Dependencies
 
 Install the required dependencies using PDM (Python Dependency Manager):
 
@@ -97,10 +79,12 @@ pip install pdm
 pdm install
 ```
 
-> [!NOTE] PDM will read the `pyproject.toml` file and install all necessary dependencies
+<!-- prettier-ignore -->
+> [!NOTE]
+> PDM will read the `pyproject.toml` file and install all necessary dependencies
 > for Botkit.
 
-## Step 5: Configure Your Bot
+## Step 4: Configure Your Bot
 
 1. In the root directory of your Botkit project, create a file named `config.yml`.
 2. Open `config.yml` in a text editor and add the following content:
@@ -108,14 +92,18 @@ pdm install
 ```yaml
 bot:
   token: "YOUR_BOT_TOKEN_HERE"
+  slash:
+    enabled: true # Required for slash commands to work
 ```
 
 Replace `YOUR_BOT_TOKEN_HERE` with the actual token of your Discord bot.
 
-> [!CAUTION] Never share your bot token publicly or commit it to version control. Treat
+<!-- prettier-ignore -->
+> [!CAUTION]
+> Never share your bot token publicly or commit it to version control. Treat
 > it like a password.
 
-## Step 6: Create a New Extension Folder
+## Step 5: Create a New Extension Folder
 
 Now, let's create a new folder for our extension:
 
@@ -126,7 +114,7 @@ Now, let's create a new folder for our extension:
 mkdir src/extensions/my_first_extension
 ```
 
-## Step 7: Create the `__init__.py` File
+## Step 6: Create the `__init__.py` File
 
 The `__init__.py` file is crucial for Python to recognize the directory as a package:
 
@@ -139,16 +127,18 @@ touch src/extensions/my_first_extension/__init__.py
 2. Open `__init__.py` in your preferred text editor and add the following content:
 
 ```python
-from .main import setup, default, schema
+from .main import setup, default
 
-__all__ = ["setup", "default", "schema"]
+__all__ = ["setup", "default"]
 ```
 
-> [!NOTE] This file imports and exposes the necessary components from our `main.py` file
+<!-- prettier-ignore -->
+> [!NOTE]
+> This file imports and exposes the necessary components from our `main.py` file
 > (which we'll create next). It allows Botkit to access these components when loading
 > the extension.
 
-## Step 8: Create the `main.py` File
+## Step 7: Create the `main.py` File
 
 The `main.py` file will contain the main logic for our extension:
 
@@ -175,10 +165,6 @@ def setup(bot: discord.Bot):
 default = {
     "enabled": True
 }
-
-schema = {
-    "enabled": bool
-}
 ```
 
 Let's break down what we've done here:
@@ -189,12 +175,14 @@ Let's break down what we've done here:
 - We define a `MyFirstExtension` class that inherits from `commands.Cog`. This class
   will contain our commands and listeners.
 - The `setup` function is required by Botkit to add our cog to the bot.
-- We define `default` and `schema` dictionaries for the extension's configuration.
+- We define a `default` dictionary for the extension's configuration.
 
-> [!TIP] Using type hints (like `bot: discord.Bot`) helps catch errors early and
+<!-- prettier-ignore -->
+> [!TIP]
+> Using type hints (like `bot: discord.Bot`) helps catch errors early and
 > improves code readability. It's a good practice to use them consistently in your code.
 
-## Step 9: Adding Commands
+## Step 8: Adding Commands
 
 Now, let's add some commands to our extension. We'll create a simple "hello" command and
 a more complex "userinfo" command.
@@ -238,11 +226,13 @@ Let's explain these commands:
    - Creates an embed with various pieces of information about the user.
    - Responds with the created embed.
 
-> [!NOTE] Slash commands are the modern way to create Discord bot commands. They provide
+<!-- prettier-ignore -->
+> [!NOTE]
+> Slash commands are the modern way to create Discord bot commands. They provide
 > better user experience and are easier to discover than traditional prefix-based
 > commands.
 
-## Step 10: Adding an Event Listener
+## Step 9: Adding an Event Listener
 
 Let's add an event listener to our extension to demonstrate how to respond to Discord
 events. We'll add a simple listener that logs when the bot is ready.
@@ -258,10 +248,12 @@ async def on_ready(self):
 This listener will print a message to the console when the bot has successfully
 connected to Discord.
 
-> [!TIP] Event listeners are great for performing actions based on Discord events, such
+<!-- prettier-ignore -->
+> [!TIP]
+> Event listeners are great for performing actions based on Discord events, such
 > as when a member joins a server or when a message is deleted.
 
-## Step 11: Final `main.py` File
+## Step 10: Final `main.py` File
 
 Your complete `main.py` file should now look like this:
 
@@ -303,13 +295,9 @@ def setup(bot: discord.Bot):
 default = {
     "enabled": True
 }
-
-schema = {
-    "enabled": bool
-}
 ```
 
-## Step 12: Running Your Bot
+## Step 11: Running Your Bot
 
 Now that we've created our extension, let's run the bot:
 
@@ -320,7 +308,9 @@ Now that we've created our extension, let's run the bot:
 pdm run start
 ```
 
-> [!IMPORTANT] Ensure your bot token is correctly set in the `config.yml` file before
+<!-- prettier-ignore -->
+> [!IMPORTANT]
+> Ensure your bot token is correctly set in the `config.yml` file before
 > running the bot.
 
 If everything is set up correctly, you should see the "Bot is ready!" message in your
@@ -335,10 +325,14 @@ This extension includes:
 2. A more complex "userinfo" slash command that creates an embed
 3. An event listener for the "on_ready" event
 
-> [!TIP] To continue improving your bot, consider adding more commands, implementing
+<!-- prettier-ignore -->
+> [!TIP]
+> To continue improving your bot, consider adding more commands, implementing
 > additional event listeners, or integrating with external APIs or databases.
 
-> [!WARNING] Always be cautious when handling user data and permissions in your bot.
+<!-- prettier-ignore -->
+> [!WARNING]
+> Always be cautious when handling user data and permissions in your bot.
 > Ensure you're following Discord's Terms of Service and Developer Policy.
 
 Remember to always use type hinting in your code. It helps with code readability,

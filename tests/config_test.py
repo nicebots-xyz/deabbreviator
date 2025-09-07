@@ -1,7 +1,7 @@
 # Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
 
-# ruff: noqa: S101, S105
+# ruff: noqa: S105
 
 import os
 from typing import Any
@@ -45,13 +45,14 @@ def test_merge_dicts_with_none() -> None:
 
 def test_load_from_env() -> None:
     """Test loading configuration from environment variables."""
-    # Set up test environment variables
     test_env = {
         "BOTKIT__TOKEN": "test-token",
         "BOTKIT__EXTENSIONS__PING__ENABLED": "true",
         "BOTKIT__EXTENSIONS__PING__COLOR": "0xFF0000",
+        "BOTKIT__EXTENSIONS__PING__LOCALES": '["en", "fr"]',
         "BOTKIT__EXTENSIONS__TOPGG__TOKEN": "test-topgg-token",
     }
+    # Set up test environment variables
 
     for key, value in test_env.items():
         os.environ[key] = value
@@ -63,6 +64,7 @@ def test_load_from_env() -> None:
         assert config["token"] == "test-token"
         assert config["extensions"]["ping"]["enabled"] is True
         assert config["extensions"]["ping"]["color"] == 0xFF0000
+        assert config["extensions"]["ping"]["locales"] == ["en", "fr"]
         assert config["extensions"]["topgg"]["token"] == "test-topgg-token"
 
     finally:

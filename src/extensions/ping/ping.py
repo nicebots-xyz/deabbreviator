@@ -5,7 +5,6 @@ import aiohttp
 import discord
 from discord.ext import bridge, commands
 from quart import Quart
-from schema import Schema
 
 from src import custom
 from src.log import logger
@@ -14,12 +13,6 @@ from src.utils.cooldown import BucketType, cooldown
 default = {
     "enabled": True,
 }
-
-schema = Schema(
-    {
-        "enabled": bool,
-    },
-)
 
 
 class BridgePing(commands.Cog):

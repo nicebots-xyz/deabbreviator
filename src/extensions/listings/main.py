@@ -6,7 +6,6 @@ from typing import Any, override
 import aiohttp
 import discord
 from discord.ext import commands, tasks
-from schema import Optional, Schema
 
 from src.log import logger
 
@@ -16,14 +15,6 @@ DISCORDSCOM_BASE_URL = "https://discords.com/bots/api/bot"
 default = {
     "enabled": False,
 }
-
-schema = Schema(
-    {
-        Optional("topgg_token"): str,
-        Optional("discordscom_token"): str,
-        "enabled": bool,
-    },
-)
 
 
 async def post_request(url: str, headers: dict[Any, Any], payload: dict[Any, Any]) -> None:

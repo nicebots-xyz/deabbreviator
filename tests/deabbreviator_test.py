@@ -1,6 +1,5 @@
 # Copyright (c) NiceBots all rights reserved - refer to LICENSE file in the root
 
-# ruff: noqa: S101
 import pytest
 
 from src import custom

@@ -53,9 +53,9 @@ async def start_bot(bot: custom.Bot, token: str, rest_config: RestConfig, public
 
 
 async def start_backend(app: Quart, bot: discord.Bot, token: str) -> None:
-    from hypercorn.asyncio import serve  # pyright: ignore [reportUnknownVariableType]
-    from hypercorn.config import Config
-    from hypercorn.logging import Logger as HypercornLogger
+    from hypercorn.asyncio import serve  # pyright: ignore [reportUnknownVariableType]  # noqa: PLC0415
+    from hypercorn.config import Config  # noqa: PLC0415
+    from hypercorn.logging import Logger as HypercornLogger  # noqa: PLC0415
 
     class CustomLogger(HypercornLogger):
         def __init__(
@@ -202,7 +202,7 @@ async def start(run_bot: bool | None = None, run_backend: bool | None = None) ->
         logger.critical("No bot token provided in config, exiting...")
         return
     if config.db.enabled:
-        from src.database.config import init
+        from src.database.config import init  # noqa: PLC0415
 
         logger.info("Initializing database...")
         await init()

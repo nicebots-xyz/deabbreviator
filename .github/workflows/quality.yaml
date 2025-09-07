@@ -25,7 +25,7 @@ jobs:
     name: ${{ matrix.name }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PDM
         uses: pdm-project/setup-pdm@v4
@@ -43,8 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Copywrite
-        uses: hashicorp/setup-copywrite@5e3e8a26d7b9f8a508848ad0a069dfd2f7aa5339
+        uses: hashicorp/setup-copywrite@32f9f1c86f661b8a51100768976a06f1b281a035
       - name: Check Header Compliance
         run: copywrite headers --plan --config .copywrite.hcl

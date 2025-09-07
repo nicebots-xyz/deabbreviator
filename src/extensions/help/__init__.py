@@ -1,11 +1,17 @@
 # Copyright (c) NiceBots all rights reserved
 from collections import defaultdict
 from functools import cached_property
-from typing import Any, Final, final, override
+from typing import Any, Final, final
 
 import discord
 from discord.ext import commands
-from discord.ext import pages as paginator
+from discord.ui import (
+    Button,
+    Container,
+    Select,
+    TextDisplay,
+    View,
+)
 
 from src import custom
 from src.extensions.help.pages.classes import (
@@ -82,82 +88,205 @@ def get_gradient_color(shade_index: int, color_index: int, max_shade: int = 50, 
     return (final_color[0] << 16) | (final_color[1] << 8) | final_color[2]
 
 
-class PageIndicatorButton(paginator.PaginatorButton):
-    def __init__(self) -> None:
-        super().__init__(button_type="page_indicator", disabled=True, label="", style=discord.ButtonStyle.gray)
-
-
 @final
-class HelpView(paginator.Paginator):
+class HelpView(View):
     def __init__(
         self,
-        embeds: dict[str, list[discord.Embed]],
+        categories_data: dict[str, list[dict]],
         ui_translations: TranslationWrapper[dict[str, RawTranslation]],
         bot: custom.Bot,
     ) -> None:
+        super().__init__(timeout=180)
         self.bot = bot
-
-        the_pages: list[paginator.PageGroup] = [
-            paginator.PageGroup(
-                [paginator.Page(embeds=[embed]) for embed in data[1]],
-                label=data[0],
-                default=i == 0,
-            )
-            for i, data in enumerate(embeds.items())
-        ]
-
-        self.embeds = embeds
+        self.categories_data = categories_data
         self.ui_translations = ui_translations
-        self.page_indicator = PageIndicatorButton()
-        super().__init__(
-            the_pages,
-            show_menu=True,
-            menu_placeholder=ui_translations.select_category,
-            custom_buttons=[
-                paginator.PaginatorButton("first", emoji="⏮️", style=discord.ButtonStyle.blurple),
-                paginator.PaginatorButton("prev", emoji="◀️", style=discord.ButtonStyle.red),
-                self.page_indicator,
-                paginator.PaginatorButton("next", emoji="▶️", style=discord.ButtonStyle.green),
-                paginator.PaginatorButton("last", emoji="⏭️", style=discord.ButtonStyle.blurple),
-            ],
-            use_default_buttons=False,
+        self.current_category = next(iter(categories_data.keys()))
+        self.current_page = 0
+        self.total_pages = len(categories_data[self.current_category])
+
+        # Create navigation buttons (will be added to container in update_content)
+        self.first_button = Button(style=discord.ButtonStyle.blurple, emoji="⏮️", label="First", disabled=True)
+        self.first_button.callback = self.first_button_callback
+
+        self.prev_button = Button(style=discord.ButtonStyle.red, emoji="◀️", label="Previous", disabled=True)
+        self.prev_button.callback = self.prev_button_callback
+
+        self.page_indicator = Button(
+            style=discord.ButtonStyle.gray,
+            label=ui_translations.page_indicator.format(current=1, total=self.total_pages),
+            disabled=True,
         )
 
-    @override
-    def update_buttons(self) -> dict:  # pyright: ignore [reportMissingTypeArgument, reportUnknownParameterType]
-        r = super().update_buttons()  # pyright: ignore [reportUnknownVariableType]
-        if self.show_indicator:
-            self.buttons["page_indicator"]["object"].label = self.ui_translations.page_indicator.format(
-                current=self.current_page + 1, total=self.page_count + 1
-            )
-        return r  # pyright: ignore [reportUnknownVariableType]
+        self.next_button = Button(
+            style=discord.ButtonStyle.green, emoji="▶️", label="Next", disabled=self.total_pages <= 1
+        )
+        self.next_button.callback = self.next_button_callback
+
+        self.last_button = Button(
+            style=discord.ButtonStyle.blurple, emoji="⏭️", label="Last", disabled=self.total_pages <= 1
+        )
+        self.last_button.callback = self.last_button_callback
+
+        # Create category selector
+        self.category_select = Select(
+            placeholder=ui_translations.select_category,
+            options=[discord.SelectOption(label=category, value=category) for category in categories_data],
+        )
+        self.category_select.callback = self.category_select_callback
+
+        # Add the main container with content
+        self.update_content()
+
+    def update_content(self) -> None:
+        """Update the view's content based on the current category and page."""
+        # Remove existing containers if any
+        for item in list(self.children):
+            if isinstance(item, Container):
+                self.remove_item(item)
+
+        # Get the current page data
+        page_data = self.categories_data[self.current_category][self.current_page]
+
+        # Create the main container
+        container = Container(color=discord.Color(page_data["color"]))
+
+        # Add title directly as TextDisplay
+        title_text = TextDisplay(f"### {page_data['title']}")
+        container.add_item(title_text)
+
+        # Add description directly as TextDisplay
+        description_text = TextDisplay(page_data["description"])
+        container.add_item(description_text)
+
+        # Add separator
+        container.add_separator(divider=True)
+
+        # Add quick tips if available
+        if page_data.get("quick_tips"):
+            tips_title = TextDisplay(f"### {self.ui_translations.quick_tips_title}")
+            container.add_item(tips_title)
+            tips_content = TextDisplay("\n".join([f"- {tip}" for tip in page_data["quick_tips"]]))
+            container.add_item(tips_content)
+            container.add_separator()
+
+        # Add examples if available
+        if page_data.get("examples"):
+            examples_title = TextDisplay(f"### {self.ui_translations.examples_title}")
+            container.add_item(examples_title)
+            examples_content = TextDisplay("\n".join([f"- {example}" for example in page_data["examples"]]))
+            container.add_item(examples_content)
+            container.add_separator()
+
+        # Add related commands if available
+        if page_data.get("related_commands"):
+            commands_title = TextDisplay(f"### {self.ui_translations.related_commands_title}")
+            commands_content_list = []
+            for cmd_name in page_data["related_commands"]:
+                cmd = self.bot.get_application_command(cmd_name)
+                if cmd:
+                    commands_content_list.append(f"- {cmd.mention}")
+            if commands_content_list:
+                container.add_item(commands_title)
+                commands_content = TextDisplay("\n".join(commands_content_list))
+                container.add_item(commands_content)
+                container.add_separator(divider=True)
+
+        # Add navigation buttons to the container
+        container.add_item(self.first_button)
+        container.add_item(self.prev_button)
+        container.add_item(self.page_indicator)
+        container.add_item(self.next_button)
+        container.add_item(self.last_button)
+        container.add_item(self.category_select)
+
+        # Add the container to the view
+        self.add_item(container)
+
+    async def category_select_callback(self, interaction: discord.Interaction) -> None:
+        """Handle category selection."""
+        self.current_category = self.category_select.values[0]
+        self.current_page = 0
+        self.total_pages = len(self.categories_data[self.current_category])
+
+        # Update navigation buttons
+        self.first_button.disabled = True
+        self.prev_button.disabled = True
+        self.next_button.disabled = self.total_pages <= 1
+        self.last_button.disabled = self.total_pages <= 1
+        self.page_indicator.label = self.ui_translations.page_indicator.format(current=1, total=self.total_pages)
+
+        # Update content
+        self.update_content()
+        await interaction.response.edit_message(view=self)
+
+    async def first_button_callback(self, interaction: discord.Interaction) -> None:
+        """Go to the first page."""
+        self.current_page = 0
+        await self.update_page(interaction)
+
+    async def prev_button_callback(self, interaction: discord.Interaction) -> None:
+        """Go to the previous page."""
+        self.current_page = max(0, self.current_page - 1)
+        await self.update_page(interaction)
+
+    async def next_button_callback(self, interaction: discord.Interaction) -> None:
+        """Go to the next page."""
+        self.current_page = min(self.total_pages - 1, self.current_page + 1)
+        await self.update_page(interaction)
+
+    async def last_button_callback(self, interaction: discord.Interaction) -> None:
+        """Go to the last page."""
+        self.current_page = self.total_pages - 1
+        await self.update_page(interaction)
+
+    async def update_page(self, interaction: discord.Interaction) -> None:
+        """Update the view after a page change."""
+        # Update navigation buttons
+        self.first_button.disabled = self.current_page == 0
+        self.prev_button.disabled = self.current_page == 0
+        self.next_button.disabled = self.current_page == self.total_pages - 1
+        self.last_button.disabled = self.current_page == self.total_pages - 1
+        self.page_indicator.label = self.ui_translations.page_indicator.format(
+            current=self.current_page + 1, total=self.total_pages
+        )
+
+        # Update content
+        self.update_content()
+        await interaction.response.edit_message(view=self)
 
 
-def get_categories_embeds(
-    ui_translations: TranslationWrapper[dict[str, RawTranslation]],
+def get_categories_data(
+    ui_translations: TranslationWrapper[dict[str, RawTranslation]],  # noqa: ARG001
     categories: dict[str, TranslationWrapper[HelpCategoryTranslation]],
-    bot: custom.Bot,
-) -> dict[str, list[discord.Embed]]:
-    embeds: defaultdict[str, list[discord.Embed]] = defaultdict(list)
+    bot: custom.Bot,  # noqa: ARG001
+) -> dict[str, list[dict]]:
+    """Generate category data for the help view.
+
+    Returns a dictionary where keys are category names and values are lists of page data dictionaries.
+    Each page data dictionary contains title, description, color, and optional quick_tips,
+    examples, and related_commands.
+    """
+    categories_data: defaultdict[str, list[dict]] = defaultdict(list)
     for i, category in enumerate(categories):
         for j, page in enumerate(category.pages.values()):  # pyright: ignore [reportUnknownArgumentType, reportUnknownVariableType, reportAttributeAccessIssue]
-            embed = discord.Embed(
-                title=f"{category.name} - {page.title}",  # pyright: ignore [reportAttributeAccessIssue]
-                description=page.description,  # pyright: ignore [reportUnknownArgumentType]
-                color=discord.Color(get_gradient_color(i, j)),
-            )
+            page_data = {
+                "title": f"{category.name} - {page.title}",  # pyright: ignore [reportAttributeAccessIssue]
+                "description": page.description,  # pyright: ignore [reportUnknownArgumentType]
+                "color": get_gradient_color(i, j),
+            }
+
             if page.quick_tips:
-                embed.add_field(name=ui_translations.quick_tips_title, value="- " + "\n- ".join(page.quick_tips))  # pyright: ignore [reportUnknownArgumentType]
+                page_data["quick_tips"] = page.quick_tips  # pyright: ignore [reportUnknownArgumentType]
+
             if page.examples:
-                embed.add_field(name=ui_translations.examples_title, value="- " + "\n- ".join(page.examples))  # pyright: ignore [reportUnknownArgumentType]
+                page_data["examples"] = page.examples  # pyright: ignore [reportUnknownArgumentType]
+
             if page.related_commands:
-                embed.add_field(
-                    name=ui_translations.related_commands_title,
-                    value="- "
-                    + "\n- ".join(bot.get_application_command(name).mention for name in page.related_commands),  # pyright: ignore [reportUnknownArgumentType, reportUnknownVariableType, reportAttributeAccessIssue, reportOptionalMemberAccess]
-                )
-            embeds[category.name].append(embed)  # pyright: ignore [reportAttributeAccessIssue]
-    return dict(embeds)
+                page_data["related_commands"] = page.related_commands  # pyright: ignore [reportUnknownArgumentType, reportUnknownVariableType, reportAttributeAccessIssue]
+
+            categories_data[category.name].append(page_data)  # pyright: ignore [reportAttributeAccessIssue]
+
+    return dict(categories_data)
 
 
 @final
@@ -168,13 +297,14 @@ class Help(commands.Cog):
         self.locales = locales
 
     @cached_property
-    async def embeds(self) -> dict[str, dict[str, list[discord.Embed]]]:
-        embeds: defaultdict[str, dict[str, list[discord.Embed]]] = defaultdict(dict)
+    def categories_data(self) -> dict[str, dict[str, list[dict]]]:
+        """Generate and cache help category data for all locales."""
+        data: defaultdict[str, dict[str, list[dict]]] = defaultdict(dict)
         for locale in self.locales:
             t = help_translation.get_for_locale(locale)
             ui = apply_locale(self.ui_translations, locale)
-            embeds[locale] = get_categories_embeds(ui, t.categories, self.bot)
-        return dict(embeds)
+            data[locale] = get_categories_data(ui, t.categories, self.bot)
+        return dict(data)
 
     @discord.slash_command(
         name="help",
@@ -186,12 +316,13 @@ class Help(commands.Cog):
         },
     )
     async def help_slash(self, ctx: custom.ApplicationContext) -> None:
-        paginator = HelpView(
-            embeds=self.embeds[ctx.locale],
+        """Display help information using the new UI components."""
+        help_view = HelpView(
+            categories_data=self.categories_data[ctx.locale],
             ui_translations=apply_locale(self.ui_translations, ctx.locale),
             bot=self.bot,
         )
-        await paginator.respond(ctx.interaction, ephemeral=True)
+        await ctx.respond(view=help_view, ephemeral=True)
 
 
 def setup(bot: custom.Bot, config: dict[str, Any]) -> None:  # pyright: ignore [reportExplicitAny]

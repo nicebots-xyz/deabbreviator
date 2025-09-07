@@ -7,7 +7,6 @@ from typing import Any
 import aiohttp
 import discord
 from discord.ext import commands, tasks
-from schema import Schema
 
 from src.log import logger
 
@@ -16,14 +15,6 @@ default = {
     "url": "",
     "every": 60,
 }
-
-schema = Schema(
-    {
-        "enabled": bool,
-        "url": str,
-        "every": int,
-    },
-)
 
 
 class Status(commands.Cog):

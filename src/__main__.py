@@ -15,7 +15,7 @@ async def main() -> None:
     await load_and_run_patches()
     # we import main here to apply patches before importing as many things we can
     # and allow the patches to be applied to later imported modules
-    from src.start import start
+    from src.start import start  # noqa: PLC0415
 
     await start()
 

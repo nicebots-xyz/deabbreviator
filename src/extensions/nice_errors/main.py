@@ -5,7 +5,6 @@ from typing import Any, final
 
 import discord
 from discord.ext import commands
-from schema import Optional, Schema
 
 from src import custom
 from src.utils.cooldown import CooldownExceeded
@@ -19,13 +18,6 @@ from .handlers.not_found import NotFoundErrorHandler
 default = {
     "enabled": True,
 }
-
-schema = Schema(
-    {
-        "enabled": bool,
-        Optional("sentry"): {"dsn": str},
-    },
-)
 
 
 @final

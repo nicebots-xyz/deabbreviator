@@ -3,7 +3,6 @@
 
 import discord
 from discord.ext import commands
-from schema import Schema
 
 from src.log import logger
 
@@ -11,13 +10,6 @@ default = {
     "enabled": True,
     "message": "Heyy, {user.mention}! Thank you for inviting me to your server! To get started, type `/help`",
 }
-
-schema = Schema(
-    {
-        "enabled": bool,
-        "message": str,
-    },
-)
 
 
 class AddDM(commands.Cog):
