@@ -133,6 +133,7 @@ class Deabbreviator(commands.Cog):
         "kpdh": "kpop demon hunters",
         "job": "j*b",
         "dv8": "deviate",
+        "syba": "see you baguette",
     }
 
     def __init__(self, bot: custom.Bot) -> None:
