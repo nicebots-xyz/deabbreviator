@@ -4,25 +4,6 @@ A Discord bot that translates common internet abbreviations into their full mean
 
 <img src="/examples/message_command_1.png" alt="Example of the Deabbreviator bot in action" width="500"/>
 
-<!-- prettier-ignore -->
->[!WARNING]
->This Discord bot is subject to special licensing terms. Please read the full NiceBots Discord Bot License Agreement Version 1.0 for complete details.
-
-<!-- prettier-ignore -->
->[!IMPORTANT]
->**Key License Points:**
->- Personal or internal business use only
->- No commercial or economic gain (including donations)
->- All modifications must be publicly shared
->- Clear attribution required
->- Contributions grant full rights to NiceBots.xyz
->- License termination upon legal dispute
->- No use of NiceBots.xyz trademarks
-
-<!-- prettier-ignore -->
->[!NOTE]
->This summary is not legally binding. Refer to the full license text for all terms and conditions.
-
 ## Add to Your Server/Account
 
 [Click here to add Deabbreviator to your server or account](https://nicebots.xyz/bots/deabbreviator/invite)
@@ -49,6 +30,3 @@ ABBREVIATIONS: Final = {
 
 This bot is maintained by [nicebots.xyz](https://nicebots.xyz) and is based on the
 [botkit template](https://github.com/nicebots-xyz/botkit).
-
-Note: By using, modifying, or distributing this bot, you agree to the terms of the
-NiceBots Discord Bot License Agreement Version 1.0.
