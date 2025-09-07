@@ -78,7 +78,7 @@ class Deabbreviator(commands.Cog):
         "dwab": "don't worry about it",
         "fs": "for sure",
         "stfu": "shut the f*** up",
-        "ong": "oh my god",
+        "ong": "on god",
         "eg": "example",
         "aka": "also known as",
         "tldr": "too long didn't read",
@@ -98,6 +98,7 @@ class Deabbreviator(commands.Cog):
         "gj": "good job",
         "gg": "good game",
         "gl": "good luck",
+        "gr": "good round",
         "ilysm": "I love you so much",
         "k": "okay",
         "kk": "okay",
@@ -133,6 +134,10 @@ class Deabbreviator(commands.Cog):
         "kpdh": "kpop demon hunters",
         "job": "j*b",
         "dv8": "deviate",
+        "sybau": "shut your b**** a** up",
+        "i18n": "internationalization",
+        "k8s": "kubernetes",
+        "smd": "suck my d***",
     }
 
     def __init__(self, bot: custom.Bot) -> None:
