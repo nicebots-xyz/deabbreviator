@@ -134,6 +134,7 @@ class Deabbreviator(commands.Cog):
         "kpdh": "kpop demon hunters",
         "job": "j*b",
         "dv8": "deviate",
+        "syba": "see you baguette",
         "sybau": "shut your b**** a** up",
         "i18n": "internationalization",
         "k8s": "kubernetes",
