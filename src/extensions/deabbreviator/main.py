@@ -129,6 +129,10 @@ class Deabbreviator(commands.Cog):
         "vc": "voice chat",
         "tbh": "to be honest",
         "tbf": "to be fair",
+        "kdh": "kpop demon hunters",
+        "kpdh": "kpop demon hunters",
+        "job": "j*b",
+        "dv8": "deviate",
     }
 
     def __init__(self, bot: custom.Bot) -> None:
