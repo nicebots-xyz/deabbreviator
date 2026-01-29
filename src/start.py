@@ -86,6 +86,20 @@ async def start_backend(app: Quart, bot: discord.Bot, token: str) -> None:
         logger.debug("", exc_info=e)
 
 
+def search_translations(extension_path: Path) -> Path | None:
+    if (translation_path := (extension_path / "translations.yml")).exists():
+        return translation_path
+    if (translation_path := (extension_path / "translations.yaml")).exists():
+        return translation_path
+    # now we also have to search in src/translations
+    extension_name = extension_path.name
+    if (translation_path := (Path(__file__).parent / "translations" / f"{extension_name}.yml")).exists():
+        return translation_path
+    if (translation_path := (Path(__file__).parent / "translations" / f"{extension_name}.yaml")).exists():
+        return translation_path
+    return None
+
+
 def load_extensions() -> tuple[
     "FunctionlistType",
     "FunctionlistType",
@@ -128,7 +142,7 @@ def load_extensions() -> tuple[
 
         logger.info(f"Loading extension {name}")
         translation: ExtensionTranslation | None = None
-        if (translation_path := (extension / "translations.yml")).exists():
+        if (translation_path := (search_translations(extension))) is not None:
             try:
                 translation = i18n.load_translation(str(translation_path))
                 translations.append(translation)

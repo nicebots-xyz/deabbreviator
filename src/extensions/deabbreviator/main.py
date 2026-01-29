@@ -1,4 +1,4 @@
-# Copyright (c) NiceBots all rights reserved - refer to LICENSE file in the root
+# Copyright NiceBots all rights reserved - refer to LICENSE file in the root 2025, 2026
 
 import re
 from functools import cached_property

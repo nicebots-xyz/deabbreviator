@@ -5,13 +5,7 @@ from typing import Any, Final, final
 
 import discord
 from discord.ext import commands
-from discord.ui import (
-    Button,
-    Container,
-    Select,
-    TextDisplay,
-    View,
-)
+from discord.ui import ActionRow, Button, Container, DesignerView, Select, TextDisplay
 
 from src import custom
 from src.extensions.help.pages.classes import (
@@ -89,7 +83,7 @@ def get_gradient_color(shade_index: int, color_index: int, max_shade: int = 50, 
 
 
 @final
-class HelpView(View):
+class HelpView(DesignerView):
     def __init__(
         self,
         categories_data: dict[str, list[dict]],
@@ -192,12 +186,10 @@ class HelpView(View):
                 container.add_separator(divider=True)
 
         # Add navigation buttons to the container
-        container.add_item(self.first_button)
-        container.add_item(self.prev_button)
-        container.add_item(self.page_indicator)
-        container.add_item(self.next_button)
-        container.add_item(self.last_button)
-        container.add_item(self.category_select)
+        container.add_item(
+            ActionRow(self.first_button, self.prev_button, self.page_indicator, self.next_button, self.last_button)
+        )
+        container.add_item(ActionRow(self.category_select))
 
         # Add the container to the view
         self.add_item(container)
@@ -318,7 +310,7 @@ class Help(commands.Cog):
     async def help_slash(self, ctx: custom.ApplicationContext) -> None:
         """Display help information using the new UI components."""
         help_view = HelpView(
-            categories_data=self.categories_data[ctx.locale],
+            categories_data=self.categories_data.get(ctx.locale, self.categories_data["en-US"]),
             ui_translations=apply_locale(self.ui_translations, ctx.locale),
             bot=self.bot,
         )

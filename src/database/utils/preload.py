@@ -1,5 +1,8 @@
 # Copyright (c) NiceBots
 # SPDX-License-Identifier: MIT
+from collections.abc import Callable, Sequence
+from functools import partial
+from typing import Literal, overload
 
 from discord.ext import commands
 
@@ -7,12 +10,13 @@ from src import custom
 from src.database.models import Guild, User
 
 
-async def _preload_user(ctx: custom.Context) -> bool:
+async def _preload_user(ctx: custom.Context, prefetch_related: Sequence[str]) -> Literal[True]:
     """Preload the user object into the context object.
 
     Args:
     ----
         ctx: The context object to preload the user object into.
+        prefetch_related: List of related fields to prefetch.
 
     Returns:
     -------
@@ -20,67 +24,100 @@ async def _preload_user(ctx: custom.Context) -> bool:
 
     """
     if isinstance(ctx, custom.ExtContext):
-        ctx.user_obj = await User.get_or_none(id=ctx.author.id) if ctx.author else None
+        ctx.user_obj = (
+            await User.get_or_none(id=ctx.author.id).prefetch_related(*prefetch_related) if ctx.author else None
+        )
     else:
-        ctx.user_obj = await User.get_or_none(id=ctx.user.id) if ctx.user else None
+        ctx.user_obj = await User.get_or_none(id=ctx.user.id).prefetch_related(*prefetch_related) if ctx.user else None
     return True
 
 
-preload_user = commands.check(_preload_user)  # pyright: ignore [reportArgumentType]
-
-
-async def _preload_guild(ctx: custom.Context) -> bool:
+async def _preload_guild(ctx: custom.Context, prefetch_related: Sequence[str]) -> Literal[True]:
     """Preload the guild object into the context object.
 
     Args:
     ----
         ctx: The context object to preload the guild object into.
+        prefetch_related: List of related fields to prefetch.
 
     Returns:
     -------
         bool: (True) always.
 
     """
-    ctx.guild_obj = await Guild.get_or_none(id=ctx.guild.id) if ctx.guild else None
+    ctx.guild_obj = await Guild.get_or_none(id=ctx.guild.id).prefetch_related(*prefetch_related) if ctx.guild else None
     return True
 
 
-preload_guild = commands.check(_preload_guild)  # pyright: ignore [reportArgumentType]
-
-
-async def _preload_or_create_user(ctx: custom.Context) -> bool:
+async def _preload_or_create_user(ctx: custom.Context, prefetch_related: Sequence[str]) -> Literal[True]:
     """Preload or create the user object into the context object. If the user object does not exist, create it.
 
     Args:
     ----
         ctx: The context object to preload or create the user object into.
+        prefetch_related: List of related fields to prefetch.
 
     Returns:
     -------
         bool: (True) always.
 
     """
-    ctx.user_obj, _ = await User.get_or_create(id=ctx.author.id) if ctx.author else (None, None)
+    user: User | None
+    user, _ = await User.get_or_create(id=ctx.author.id) if ctx.author else (None, None)
+    if user is not None:
+        await user.fetch_related(*prefetch_related)
+    ctx.user_obj = user
     return True
 
 
-preload_or_create_user = commands.check(_preload_or_create_user)
-
-
-async def _preload_or_create_guild(ctx: custom.Context) -> bool:
+async def _preload_or_create_guild(ctx: custom.Context, prefetch_related: Sequence[str]) -> Literal[True]:
     """Preload or create the guild object into the context object. If the guild object does not exist, create it.
 
     Args:
     ----
         ctx: The context object to preload or create the guild object into.
+        prefetch_related: List of related fields to prefetch.
 
     Returns:
     -------
         bool: (True) always.
 
     """
-    ctx.guild_obj, _ = await Guild.get_or_create(id=ctx.guild.id) if ctx.guild else (None, None)
+    guild: Guild | None
+    guild, _ = await Guild.get_or_create(id=ctx.guild.id) if ctx.guild else (None, None)
+    if guild is not None:
+        await guild.fetch_related(*prefetch_related)
+    ctx.guild_obj = guild
     return True
 
 
-preload_or_create_guild = commands.check(_preload_or_create_guild)  # pyright: ignore [reportArgumentType]
+type PreloadFunction = Callable[[custom.Context, Sequence[str]], Literal[True]]
+
+
+@overload
+def preload_x[T](f: T, preloader: PreloadFunction, prefetch_related: Sequence[str] | None = None) -> T: ...
+
+
+@overload
+def preload_x[T](
+    f: None = None, *, preloader: PreloadFunction, prefetch_related: Sequence[str] | None = None
+) -> Callable[[T], T]: ...
+
+
+def preload_x[T](
+    f: Callable[[T], T] | None = None, *, preloader: PreloadFunction, prefetch_related: Sequence[str] | None = None
+):
+    if prefetch_related is None:
+        prefetch_related = []
+
+    func = partial(preloader, prefetch_related=prefetch_related)
+
+    check_decorator = commands.check(func)
+
+    return check_decorator(f) if f is not None else check_decorator
+
+
+preload_guild = partial(preload_x, preloader=_preload_guild)
+preload_user = partial(preload_x, preloader=_preload_user)
+preload_or_create_guild = partial(preload_x, preloader=_preload_or_create_guild)
+preload_or_create_user = partial(preload_x, preloader=_preload_or_create_user)
