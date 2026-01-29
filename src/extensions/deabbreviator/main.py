@@ -54,6 +54,7 @@ class Deabbreviator(commands.Cog):
         "ur": "you're",
         "qt": "cutie",
         "fr": "for real",
+        "frfr": "for real for real",
         "gf": "girlfriend",
         "bf": "boyfriend",
         "rn": "right now",
@@ -137,8 +138,14 @@ class Deabbreviator(commands.Cog):
         "syba": "see you baguette",
         "sybau": "shut your b**** a** up",
         "i18n": "internationalization",
+        "l10n": "localization",
+        "a11y": "accessibility",
         "k8s": "kubernetes",
         "smd": "suck my d***",
+        "ymmv": "your mileage may vary",
+        "asp": "at some point",
+        "atp": "at this point",
+        "iirc": "if I recall correctly",
     }
 
     def __init__(self, bot: custom.Bot) -> None:
