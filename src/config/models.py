@@ -68,9 +68,17 @@ class UseConfig(BaseModel):
     backend: bool = False
 
 
+class DbExtraApp(BaseModel):
+    url: str | None = None
+    params: dict[str, Any] | None = None
+    models: list[str] = []
+
+
 class DbConfig(BaseModel):
     url: str
     enabled: bool = True
+    params: dict[str, Any] | None = None
+    extra_apps: dict[str, DbExtraApp] = {}
 
 
 class Config(BaseModel):

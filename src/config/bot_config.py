@@ -10,8 +10,6 @@ import orjson
 import yaml
 from dotenv import load_dotenv
 
-from .models import Config
-
 load_dotenv()
 
 SPLIT: str = "__"
@@ -61,7 +59,6 @@ elif os.path.exists("config.yml"):
     path = "config.yml"
 
 _config: dict[str, Any] = defaultdict(dict)  # pyright: ignore [reportExplicitAny]
-config: Config
 
 
 def merge_dicts(dct: dict[str, Any], merge_dct: dict[str, Any]) -> None:  # pyright: ignore [reportExplicitAny]
@@ -77,5 +74,3 @@ if path:
         _config.update(yaml.safe_load(f))
 
 merge_dicts(_config, load_from_env())
-
-config = Config(**_config) if _config else Config()

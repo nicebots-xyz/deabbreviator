@@ -1,0 +1,29 @@
+name: Auto approve
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  auto-approve:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    if: >
+      github.event.pull_request.base.ref == github.event.repository.default_branch &&
+      contains(
+        format(',{0},', vars.AUTO_APPROVE_ACTORS),
+        format(',{0},', github.event.pull_request.user.id)
+      )
+
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              event: "APPROVE",
+            })
