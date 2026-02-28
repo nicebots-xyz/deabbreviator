@@ -146,6 +146,7 @@ class Deabbreviator(commands.Cog):
         "asp": "at some point",
         "atp": "at this point",
         "iirc": "if I recall correctly",
+        "ic": "i see",
     }
 
     def __init__(self, bot: custom.Bot) -> None:
