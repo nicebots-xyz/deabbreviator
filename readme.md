@@ -1,3 +1,7 @@
+<!--
+SPDX-License-Identifier: MIT
+Copyright: 2024-2026 NiceBots.xyz
+-->
 # Deabbreviator Bot
 
 A Discord bot that translates common internet abbreviations into their full meanings.

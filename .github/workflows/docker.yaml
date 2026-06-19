@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright: 2024-2026 NiceBots.xyz
 name: Build and Push Docker Image
 
 on: workflow_call
