@@ -12,8 +12,8 @@ dependencies = [
     "orjson>=3.10.7",
     "pytz>=2024.1",
     "typing-extensions>=4.12.2",
-    "hypercorn>=0.17.3",
-    "quart>=0.19.6",
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.30.0",
     "pydantic>=2.10.6",
     "coloredlogs>=15.0.1",
     "aiofile>=3.9.0",
@@ -21,11 +21,12 @@ dependencies = [
     "aiocache[redis]>=0.12.3",
     "tortoise-orm[asyncpg]>=0.23.0",
     "aerich[toml]>=0.8.1",
-    "py-cord>=2.7.0rc2",
+    "cachetools>=7.0.1",
+    "py-cord>=2.8.0",
     "pycord-rest-bot>=0.1.3",
 ]
 requires-python = "==3.12.*"
-readme = "README.md"
+readme = "readme.md"
 license = {text = "MIT"}
 
 
@@ -33,9 +34,13 @@ license = {text = "MIT"}
 format = "ruff format ."
 lint = "ruff check --fix ."
 tests = "pytest tests"
+typecheck = "basedpyright ."
 start = "python src"
 check-listings = {call = "scripts:check_listings.main"}
 convert-config = { call = "scripts.convert_config:main" }
+"docs:build" = "zensical build --clean"
+"docs:dev" = "zensical serve"
+"docs:preview" = "python -m http.server 8000 -d site"
 
 [tool.pdm]
 distribution = false
@@ -49,6 +54,12 @@ dev = [
     "termcolor>=2.4.0",
     "basedpyright>=1.18.3",
     "ruff>=0.6.9",
+]
+
+[dependency-groups]
+docs = [
+    "mkdocstrings[python]>=1.0.3",
+    "zensical>=0.0.24",
 ]
 
 [tool.pyright]

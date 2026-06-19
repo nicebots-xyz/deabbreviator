@@ -1,5 +1,5 @@
-# Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
+# Copyright: 2024-2026 NiceBots.xyz
 
 import argparse
 import asyncio
@@ -33,7 +33,7 @@ async def async_main(args: argparse.Namespace) -> None:
         description: str = await f.read()
     async with open(args.config, encoding="utf-8") as f:
         config: dict[str, str] = yaml.safe_load(await f.read())
-    application_id = args.application_id if args.application_id else config["application_id"]
+    application_id = args.application_id or config["application_id"]
 
     description = markdown.markdown(description)
     description = normalize_soup(BeautifulSoup(description, "html.parser"))

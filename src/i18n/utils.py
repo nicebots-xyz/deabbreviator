@@ -1,5 +1,5 @@
-# Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
+# Copyright: 2024-2026 NiceBots.xyz
 
 from typing import TYPE_CHECKING
 
@@ -14,6 +14,7 @@ from .classes import (
     Deg2CommandTranslation,
     ExtensionTranslation,
 )
+from .cog import TranslationCog
 
 if TYPE_CHECKING:
     from src import custom
@@ -73,6 +74,7 @@ def localize_commands[  # noqa: PLR0912
         discord.SlashCommandGroup,
         prefixed.Command,  # pyright: ignore[reportMissingTypeArgument]
         discord.MessageCommand,
+        discord.UserCommand,
     )
 ](
     commands: list[T],
@@ -100,7 +102,12 @@ def localize_commands[  # noqa: PLR0912
     tot = 0
     for command in commands:
         if isinstance(
-            command, discord.SlashCommand | discord.SlashCommandGroup | prefixed.Command | discord.MessageCommand
+            command,
+            discord.SlashCommand
+            | discord.SlashCommandGroup
+            | prefixed.Command
+            | discord.MessageCommand
+            | discord.UserCommand,
         ):
             tot += 1
             try:
@@ -201,10 +208,11 @@ def apply(
         return
 
     err, tot = localize_commands(
-        [*bot.pending_application_commands, *bot.commands],  # pyright: ignore[reportUnknownMemberType,reportUnknownArgumentType]
+        [*bot.pending_application_commands, *bot.commands],  # pyright: ignore[reportUnknownArgumentType]
         command_translations,
         default_locale,
     )
+    bot.add_cog(TranslationCog(bot))
     if tot == err:
         logger.error(f"Localized {tot - err}/{tot} commands.")
     elif err:

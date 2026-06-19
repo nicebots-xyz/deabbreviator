@@ -1,10 +1,10 @@
-# Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
+# Copyright: 2024-2026 NiceBots.xyz
 
 import aiohttp
 import discord
 from discord.ext import bridge, commands
-from quart import Quart
+from fastapi import FastAPI
 
 from src import custom
 from src.log import logger
@@ -17,7 +17,8 @@ default = {
 
 class BridgePing(commands.Cog):
     def __init__(self, bot: custom.Bot) -> None:
-        self.bot = bot
+        self.bot: custom.Bot = bot
+        super().__init__()
 
     @bridge.bridge_command()
     @cooldown(
@@ -50,8 +51,8 @@ def setup(bot: custom.Bot) -> None:
     bot.add_cog(BridgePing(bot))
 
 
-def setup_webserver(app: Quart, bot: discord.Bot) -> None:
-    @app.route("/ping")
+def setup_webserver(app: FastAPI, bot: discord.Bot) -> None:
+    @app.get("/ping")
     async def ping() -> dict[str, str]:  # pyright: ignore[reportUnusedFunction]
         if not bot.user:
             return {"message": "Bot is offline"}

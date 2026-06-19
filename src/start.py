@@ -1,244 +1,115 @@
-# Copyright (c) NiceBots.xyz
 # SPDX-License-Identifier: MIT
+# Copyright: 2024-2026 NiceBots.xyz
+
+"""Main entry point for starting the bot and backend server.
+
+This module provides the top-level orchestration for the startup process.
+Most of the actual implementation has been moved to the src.startup package
+for better organization and maintainability.
+"""
 
 import asyncio
-import importlib
-import importlib.util
-from glob import iglob
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+import contextlib
 
-import discord
-import yaml
-from discord.errors import LoginFailure
-from discord.ext import commands
-from quart import Quart
+from fastapi import FastAPI
 
-from src import custom, i18n
+from src import custom
 from src.config import config
-from src.config.models import BotConfig, Extension, RestConfig
-from src.i18n.classes import ExtensionTranslation
-from src.log import logger, patch
-from src.utils import setup_func, unzip_extensions, validate_module
+from src.config.models import BotConfig
+from src.log import logger
+from src.startup import load_extensions, run_startup_functions
+from src.startup.backend import (
+    create_backend_app,
+    run_backend_only,
+    serve_backend,
+    setup_backend_extensions,
+)
+from src.startup.bot import create_bot, run_bot_connection, setup_bot, start_bot
+from src.utils import unzip_extensions
 
-if TYPE_CHECKING:
-    from collections.abc import Callable, Coroutine
-    from types import ModuleType
 
-    FunctionlistType = list[tuple[Callable[..., Any], Extension]]
-
-
-async def start_bot(bot: custom.Bot, token: str, rest_config: RestConfig, public_key: str | None = None) -> None:
+async def run_bot_and_backend(
+    bot: custom.Bot,
+    app: FastAPI,
+    bot_config: BotConfig,
+) -> None:
+    """Run the Discord gateway and backend API on one shared bot instance."""
     try:
-        if isinstance(bot, custom.CustomRestBot):
-            if not public_key:
-                raise TypeError("CustomRestBot requires a public key to start.")  # noqa: TRY301
-            await bot.start(
-                token=token,
-                public_key=public_key,
-                health=rest_config.health,
-                uvicorn_options={
-                    "host": rest_config.host,
-                    "port": rest_config.port,
-                },
-            )
-        else:
-            await bot.start(token)
-    except LoginFailure as e:
-        logger.critical("Failed to log in, is the bot token valid?")
-        logger.debug("", exc_info=e)
-    except Exception as e:  # noqa: BLE001
-        logger.critical("An unexpected error occurred while starting the bot.")
-        logger.debug("", exc_info=e)
-
-
-async def start_backend(app: Quart, bot: discord.Bot, token: str) -> None:
-    from hypercorn.asyncio import serve  # pyright: ignore [reportUnknownVariableType]  # noqa: PLC0415
-    from hypercorn.config import Config  # noqa: PLC0415
-    from hypercorn.logging import Logger as HypercornLogger  # noqa: PLC0415
-
-    class CustomLogger(HypercornLogger):
-        def __init__(
-            self,
-            *args,  # pyright: ignore [reportUnknownParameterType,reportMissingParameterType]  # noqa: ANN002
-            **kwargs,  # pyright: ignore [reportUnknownParameterType,reportMissingParameterType]  # noqa: ANN003
-        ) -> None:
-            super().__init__(
-                *args,  # pyright: ignore [reportUnknownArgumentType]
-                **kwargs,
-            )
-            if self.error_logger:
-                patch(self.error_logger)
-            if self.access_logger:
-                patch(self.access_logger)
-
-    app_config = Config()
-    app_config.accesslog = "-"
-    app_config.logger_class = CustomLogger
-    app_config.include_server_header = False  # security
-    app_config.bind = ["0.0.0.0:5000"]
-    try:
-        await bot.login(token)
-        await serve(app, app_config)
-        patch("hypercorn.error")
-    except Exception as e:  # noqa: BLE001
-        logger.critical("An error occurred while starting the backend server.")
-        logger.debug("", exc_info=e)
-
-
-def search_translations(extension_path: Path) -> Path | None:
-    if (translation_path := (extension_path / "translations.yml")).exists():
-        return translation_path
-    if (translation_path := (extension_path / "translations.yaml")).exists():
-        return translation_path
-    # now we also have to search in src/translations
-    extension_name = extension_path.name
-    if (translation_path := (Path(__file__).parent / "translations" / f"{extension_name}.yml")).exists():
-        return translation_path
-    if (translation_path := (Path(__file__).parent / "translations" / f"{extension_name}.yaml")).exists():
-        return translation_path
-    return None
-
-
-def load_extensions() -> tuple[
-    "FunctionlistType",
-    "FunctionlistType",
-    "FunctionlistType",
-    "list[ExtensionTranslation]",
-]:
-    """Load extensions from the extensions directory.
-
-    Returns:
-        tuple[FunctionlistType, FunctionlistType, FunctionlistType, list[ExtensionTranslation]]: A tuple containing
-        the bot functions, backend functions, startup functions, and translations.
-
-    """
-    bot_functions: FunctionlistType = []
-    back_functions: FunctionlistType = []
-    startup_functions: FunctionlistType = []
-    translations: list[ExtensionTranslation] = []
-    for _extension in iglob("src/extensions/*"):
-        extension = Path(_extension)
-        name = extension.name
-        if name.endswith(("_", "_/", ".py")):
-            continue
-
-        _, its_config = config.get_extension(name, {})
-        if its_config and not its_config.get("enabled"):
-            # Early return if extension is configured to be disabled explicitly
-            continue
-
-        try:
-            module: ModuleType = importlib.import_module(f"src.extensions.{name}")
-        except ImportError as e:
-            logger.error(f"Failed to import extension {name}")
-            logger.debug("", exc_info=e)
-            continue
-
-        its_config = its_config or cast("Extension", module.default)
-        if not its_config.get("enabled"):
-            del module
-            continue
-
-        logger.info(f"Loading extension {name}")
-        translation: ExtensionTranslation | None = None
-        if (translation_path := (search_translations(extension))) is not None:
+        async with bot:  # https://github.com/Pycord-Development/pycord/issues/2958
+            serve_task = asyncio.create_task(serve_backend(app, config.backend))
             try:
-                translation = i18n.load_translation(str(translation_path))
-                translations.append(translation)
-            except yaml.YAMLError as e:
-                logger.error(f"Error loading translation {translation_path}: {e}")
-        else:
-            logger.warning(f"No translation found for extension {name}")
-
-        validate_module(module, its_config)
-        if translation and translation.strings:
-            its_config["translations"] = translation.strings
-        if hasattr(module, "setup") and callable(module.setup):
-            bot_functions.append((module.setup, its_config))
-        if hasattr(module, "setup_webserver") and callable(module.setup_webserver):
-            back_functions.append((module.setup_webserver, its_config))
-        if hasattr(module, "on_startup") and callable(module.on_startup):
-            startup_functions.append((module.on_startup, its_config))
-
-    return bot_functions, back_functions, startup_functions, translations
-
-
-async def setup_and_start_bot(
-    bot_functions: "FunctionlistType",
-    translations: list[ExtensionTranslation],
-    config: BotConfig,
-) -> None:
-    intents = discord.Intents.default()
-    if config.prefix:
-        intents.message_content = True
-    cls = custom.CustomRestBot if config.rest else custom.CustomBot
-    bot = cls(
-        intents=intents,
-        help_command=None,
-        command_prefix=(str(config.prefix) or commands.when_mentioned),
-        cache_type=config.cache.type,
-        cache_config=config.cache.redis,
-    )
-    for function, its_config in bot_functions:
-        setup_func(function, bot=bot, config=its_config)
-    i18n.apply(bot, translations)
-    if not config.prefix:
-        bot.prefixed_commands = {}
-    if not config.slash:
-        bot._pending_application_commands = []  # pyright: ignore[reportPrivateUsage]
-    await start_bot(bot, config.token, config.rest, config.public_key)
-
-
-async def setup_and_start_backend(
-    back_functions: "FunctionlistType",
-) -> None:
-    back_bot = discord.Bot(intents=discord.Intents.default())
-    app = Quart("backend")
-    for function, its_config in back_functions:
-        setup_func(function, app=app, bot=back_bot, config=its_config)
-    await start_backend(app, back_bot, config.bot.token)
-
-
-async def run_startup_functions(
-    startup_functions: "FunctionlistType",
-    app: Quart | None,
-    back_bot: discord.Bot | None,
-) -> None:
-    startup_coros = [
-        setup_func(function, app=app, bot=back_bot, config=its_config) for function, its_config in startup_functions
-    ]
-    await asyncio.gather(*startup_coros)
+                await run_bot_connection(
+                    bot,
+                    bot_config.token,
+                    bot_config.rest,
+                    bot_config.public_key,
+                )
+            finally:
+                serve_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await serve_task
+    except Exception as e:  # noqa: BLE001
+        logger.critical("An error occurred while running the bot and backend together.")
+        logger.debug("", exc_info=e)
 
 
 async def start(run_bot: bool | None = None, run_backend: bool | None = None) -> None:
+    """Start the bot and/or backend server based on configuration.
+
+    Args:
+        run_bot: Whether to start the bot (defaults to config.use.bot)
+        run_backend: Whether to start the backend server (defaults to config.use.backend)
+
+    """
     if not config.bot.token:
         logger.critical("No bot token provided in config, exiting...")
         return
+
     if config.db.enabled:
-        from src.database.config import init  # noqa: PLC0415
+        from src.database.config import init as init_db  # noqa: PLC0415
 
         logger.info("Initializing database...")
-        await init()
+        await init_db()
 
     unzip_extensions()
+
     run_bot = run_bot if run_bot is not None else config.use.bot
     run_backend = run_backend if run_backend is not None else config.use.backend
 
     bot_functions, back_functions, startup_functions, translations = load_extensions()
 
-    coros: list[Coroutine[Any, Any, Any]] = []
-    if bot_functions and run_bot:
-        coros.append(setup_and_start_bot(bot_functions, translations, config.bot))
-    if back_functions and run_backend:
-        coros.append(setup_and_start_backend(back_functions))
-    if not coros:
+    start_bot_extensions = bool(bot_functions and run_bot)
+    start_backend_server = bool(back_functions and run_backend)
+
+    if not start_bot_extensions and not start_backend_server:
         logger.error("Nothing to start, exiting...")
         return
 
-    if startup_functions:
-        app = Quart("backend") if (back_functions and run_backend) else None
-        back_bot = discord.Bot(intents=discord.Intents.default()) if (back_functions and run_backend) else None
-        await run_startup_functions(startup_functions, app, back_bot)
+    app = None
+    bot = create_bot(config.bot)
+    if start_bot_extensions:
+        setup_bot(bot, bot_functions, translations, config.bot)
+    if start_backend_server:
+        app = create_backend_app()
+        setup_backend_extensions(app, bot, back_functions)
 
-    await asyncio.gather(*coros)
+    if startup_functions:
+        await run_startup_functions(startup_functions, app, bot)
+
+    if start_bot_extensions and start_backend_server:
+        if config.bot.rest:
+            logger.critical(
+                "REST bot mode and the Botkit backend cannot run together in one process. "
+                "Disable bot.rest or use.backend."
+            )
+            return
+        if app is None:
+            logger.error("Backend app was not initialized, exiting...")
+            return
+        await run_bot_and_backend(bot, app, config.bot)
+    elif start_bot_extensions:
+        await start_bot(bot, config.bot.token, config.bot.rest, config.bot.public_key)
+    elif app is None:
+        logger.error("Backend app was not initialized, exiting...")
+    else:
+        await run_backend_only(app, bot, config.bot.token, config.backend)

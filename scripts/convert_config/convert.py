@@ -1,5 +1,6 @@
-# Copyright (c) NiceBots
 # SPDX-License-Identifier: MIT
+# Copyright: 2024-2026 NiceBots.xyz
+
 
 from pathlib import Path
 from typing import Any
@@ -46,9 +47,9 @@ def env_to_yaml(env_path: Path, output_path: Path | None = None) -> None:
 
         # Convert string boolean values to actual booleans
         yaml_value = val
-        if val.lower() == "true":
+        if val is not None and val.lower() == "true":
             yaml_value = True
-        elif val.lower() == "false":
+        elif val is not None and val.lower() == "false":
             yaml_value = False
 
         current[parts[-1].lower()] = yaml_value
