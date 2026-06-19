@@ -168,7 +168,7 @@ class Deabbreviator(commands.Cog):
     def translation_pattern(self) -> re.Pattern[str]:
         # Escape each word to handle regex special characters and sort by descending length
         escaped_words = [re.escape(word) for word in self.ABBREVIATIONS]
-        escaped_words.sort(key=lambda x: len(x), reverse=True)
+        escaped_words.sort(key=len, reverse=True)
         # Create the regex pattern to match word boundaries and include word breaks
         pattern = r"\b(" + "|".join(escaped_words) + r")\b"
         return re.compile(pattern, flags=re.IGNORECASE)
