@@ -16,14 +16,17 @@ concurrency:
 jobs:
   quality:
     uses: ./.github/workflows/quality.yaml
+    secrets: inherit
 
   docker:
     needs: quality
     permissions:
       contents: read
+      pull-requests: read
       packages: write
       id-token: write
     uses: ./.github/workflows/docker.yaml
+    secrets: inherit
 
   docs:
     if: github.repository == 'nicebots-xyz/botkit'

@@ -5,15 +5,14 @@ from collections.abc import Awaitable, Callable, Coroutine
 from enum import Enum
 from functools import wraps
 from inspect import isawaitable
-from typing import Concatenate, Never, cast
+from typing import Any, Concatenate, Never, cast
 
 import discord
-from discord.ext import commands
 
 from src import custom
 
-type ReactiveCooldownSetting[T] = T | Callable[[custom.Bot, custom.Context], T | Coroutine[Never, None, T]]
-type CogCommandFunction[T: commands.Cog, **P] = Callable[Concatenate[T, P], Awaitable[None]]
+type ReactiveCooldownSetting[T] = T | Callable[[custom.Bot, custom.ApplicationContext], T | Coroutine[Never, None, T]]
+type CogCommandFunction[T: discord.Cog, **P] = Callable[Concatenate[T, P], Awaitable[None]]
 
 
 class BucketType(Enum):
@@ -26,7 +25,9 @@ class BucketType(Enum):
     ROLE = "role"  # Per-role cooldown (uses highest role)
 
 
-async def parse_reactive_setting[T](value: ReactiveCooldownSetting[T], bot: custom.Bot, ctx: custom.Context) -> T:
+async def parse_reactive_setting[T](
+    value: ReactiveCooldownSetting[T], bot: custom.Bot, ctx: custom.ApplicationContext
+) -> T:
     if isinstance(value, type):
         return value  # pyright: ignore [reportReturnType]
     if callable(value):
@@ -36,14 +37,14 @@ async def parse_reactive_setting[T](value: ReactiveCooldownSetting[T], bot: cust
     return value  # pyright: ignore [reportReturnType]
 
 
-class CooldownExceeded(commands.CheckFailure):
+class CooldownExceeded(discord.CheckFailure):
     def __init__(self, retry_after: float, bucket_type: BucketType) -> None:
         self.retry_after: float = retry_after
         self.bucket_type: BucketType = bucket_type
         super().__init__(f"You are on {bucket_type.value} cooldown")
 
 
-def get_bucket_key(ctx: custom.Context, base_key: str, bucket_type: BucketType) -> str:  # noqa: PLR0911
+def get_bucket_key(ctx: custom.ApplicationContext, base_key: str, bucket_type: BucketType) -> str:  # noqa: PLR0911
     """Generate a cooldown key based on the bucket type."""
     match bucket_type:
         case BucketType.USER:
@@ -68,7 +69,7 @@ def get_bucket_key(ctx: custom.Context, base_key: str, bucket_type: BucketType) 
             return base_key
 
 
-def cooldown[C: commands.Cog, **P](
+def cooldown[C: discord.Cog, **P](
     key: ReactiveCooldownSetting[str],
     *,
     limit: ReactiveCooldownSetting[int],
@@ -76,6 +77,7 @@ def cooldown[C: commands.Cog, **P](
     bucket_type: ReactiveCooldownSetting[BucketType] = BucketType.DEFAULT,
     strong: ReactiveCooldownSetting[bool] = False,
     cls: ReactiveCooldownSetting[type[CooldownExceeded]] = CooldownExceeded,
+    extra_key: Callable[[dict[str, Any]], str | None] | None = None,
 ) -> Callable[[CogCommandFunction[C, P]], CogCommandFunction[C, P]]:
     """Enhanced cooldown decorator that supports different bucket types.
 
@@ -86,13 +88,20 @@ def cooldown[C: commands.Cog, **P](
         bucket_type: Type of bucket to use for the cooldown
         strong: If True, adds current timestamp even if limit is reached
         cls: Custom exception class to raise
+        extra_key: Optional callable receiving the decorated command's resolved keyword
+            arguments (the same kwargs the command itself receives, e.g. a `user` option)
+            and returning an extra segment to fold into the cooldown key on top of
+            `bucket_type` -- for example a target user's id, for a per-(actor, target)
+            pair cooldown rather than a plain per-actor one. Returning `None` skips the
+            cooldown check entirely for that invocation (e.g. an optional target wasn't
+            supplied, so there's no pair to rate-limit). Omit for the existing behavior.
 
     """
 
     def inner(func: CogCommandFunction[C, P]) -> CogCommandFunction[C, P]:
         @wraps(func)
         async def wrapper(self: C, *args: P.args, **kwargs: P.kwargs) -> None:
-            ctx: custom.Context = args[0]  # pyright: ignore [reportAssignmentType]
+            ctx: custom.ApplicationContext = args[0]  # pyright: ignore [reportAssignmentType]
             cache = ctx.bot.botkit_cache
             key_value: str = await parse_reactive_setting(key, ctx.bot, ctx)
             limit_value: int = await parse_reactive_setting(limit, ctx.bot, ctx)
@@ -103,6 +112,13 @@ def cooldown[C: commands.Cog, **P](
 
             # Generate the full cooldown key based on bucket type
             full_key = get_bucket_key(ctx, key_value, bucket_type_value)
+
+            if extra_key is not None:
+                segment = extra_key(cast("dict[str, Any]", kwargs))
+                if segment is None:
+                    await func(self, *args, **kwargs)
+                    return
+                full_key = f"{full_key}:{segment}"
 
             now = time.time()
             time_stamps = cast("tuple[float, ...]", await cache.get(full_key, default=(), namespace="cooldown"))

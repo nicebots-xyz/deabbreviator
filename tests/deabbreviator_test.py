@@ -1,5 +1,8 @@
 # Copyright NiceBots all rights reserved - refer to LICENSE file in the root 2025, 2026
 
+import asyncio
+from collections.abc import Iterator
+
 import pytest
 
 from src import custom
@@ -7,8 +10,21 @@ from src.extensions.deabbreviator.main import Deabbreviator
 
 
 @pytest.fixture
-def deabbreviator() -> Deabbreviator:
-    return Deabbreviator(custom.CustomRestBot())
+def deabbreviator() -> Iterator[Deabbreviator]:
+    """Build the cog on a bot bound to its own event loop.
+
+    Other tests use ``asyncio.run``, which leaves no current event loop behind,
+    so the bot cannot rely on picking one up implicitly.
+
+    Yields:
+        The deabbreviator cog.
+
+    """
+    loop = asyncio.new_event_loop()
+    try:
+        yield Deabbreviator(custom.CustomRestBot(loop=loop))
+    finally:
+        loop.close()
 
 
 def test_all_keys(deabbreviator: Deabbreviator) -> None:

@@ -10,6 +10,8 @@ from discord.ext import commands
 from src import custom
 from src.utils.cooldown import BucketType, cooldown
 
+from .translation_types import DeabbreviateCommandStrings, DeabbreviateMessageCommandStrings
+
 default: Final = {"enabled": True}
 
 
@@ -192,7 +194,9 @@ class Deabbreviator(commands.Cog):
         },
     )
     @cooldown(key="deabbreviate_message", limit=1, per=5, bucket_type=BucketType.USER)
-    async def deabbreviate_message(self, ctx: custom.ApplicationContext, message: discord.Message) -> None:
+    async def deabbreviate_message(
+        self, ctx: custom.ApplicationContext[DeabbreviateMessageCommandStrings], message: discord.Message
+    ) -> None:
         a: str = await self.async_translate_string(message.content)
         if a == message.content:
             await ctx.respond(ctx.translations.no_abbreviations)
@@ -211,7 +215,7 @@ class Deabbreviator(commands.Cog):
         },
     )
     @cooldown(key="deabbreviate", limit=1, per=5, bucket_type=BucketType.USER)
-    async def deabbreviate(self, ctx: custom.ApplicationContext, text: str) -> None:
+    async def deabbreviate(self, ctx: custom.ApplicationContext[DeabbreviateCommandStrings], text: str) -> None:
         a: str = await self.async_translate_string(text)
         if a == text:
             await ctx.respond(ctx.translations.no_abbreviations)
