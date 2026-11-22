@@ -38,8 +38,8 @@ Drop **`something.zip`** into **`src/extensions/`**. Botkit extracts it on start
 Hook functions only receive arguments you declare:
 
 ```python
-def setup(bot, config): ...           # bot + config
-def setup(bot): ...                   # bot only
+def setup(bot, config): ...  # bot + config
+def setup(bot): ...  # bot only
 def setup_webserver(app, bot, config): ...
 async def on_startup(bot, config): ...
 ```
@@ -64,12 +64,11 @@ __all__ = ["default", "setup"]
 ```python
 # main.py
 import discord
-from discord.ext import commands
 
 from src import custom
 
 
-class HelloCog(commands.Cog):
+class HelloCog(discord.Cog):
     def __init__(self, bot: custom.Bot) -> None:
         self.bot = bot
 
@@ -93,7 +92,6 @@ Discord command and health route (pattern from the bundled **ping** extension):
 
 ```python
 import discord
-from discord.ext import bridge, commands
 from fastapi import FastAPI
 
 from src import custom
@@ -102,18 +100,18 @@ from src.log import logger
 default = {"enabled": True}
 
 
-class BridgePing(commands.Cog):
+class Ping(discord.Cog):
     def __init__(self, bot: custom.Bot) -> None:
         self.bot = bot
 
-    @bridge.bridge_command()
-    async def ping(self, ctx: custom.Context, *, ephemeral: bool = False) -> None:
+    @discord.slash_command()
+    async def ping(self, ctx: custom.ApplicationContext, ephemeral: bool = False) -> None:
         await ctx.defer(ephemeral=ephemeral)
         await ctx.respond(f"Pong! {round(self.bot.latency * 1000)}ms", ephemeral=ephemeral)
 
 
 def setup(bot: custom.Bot) -> None:
-    bot.add_cog(BridgePing(bot))
+    bot.add_cog(Ping(bot))
 
 
 def setup_webserver(app: FastAPI, bot: discord.Bot) -> None:
@@ -168,8 +166,7 @@ Without it, the extension still loads; you just won't get localized command name
 Optional **`patch.py`** with a **`patch()`** function, run **before** the rest of the bot starts, only when the extension is enabled. Use rarely — for global behavior that must run early (for example error handling hooks).
 
 ```python
-def patch() -> None:
-    ...
+def patch() -> None: ...
 ```
 
 Prefer normal extension code when you can.
@@ -196,6 +193,7 @@ Use Botkit's logger — not **`print()`**:
 from src.log import logger
 
 log = logger.getChild("hello")
+
 
 def setup(bot: custom.Bot) -> None:
     log.info("Loading hello extension")

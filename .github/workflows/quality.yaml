@@ -2,53 +2,48 @@
 # Copyright: 2024-2026 NiceBots.xyz
 name: Quality Checks
 
+# Every check runs as a step of a single job: Actions bills each job rounded up to the minute,
+# so one job with one dependency install costs far less than a job per check.
+
 on:
   workflow_call:
   workflow_dispatch:
 
 jobs:
   quality:
+    name: Quality
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        check: [format, lint, test]
-        include:
-          - check: format
-            name: "Format Check"
-            command: "pdm run ruff format --check ."
-          - check: lint
-            name: "Lint Check"
-            command: "pdm run ruff check ."
-          - check: test
-            name: "Tests Check"
-            command: "pdm run tests"
-
-    name: ${{ matrix.name }}
-
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup PDM
-        uses: pdm-project/setup-pdm@94a823180e06fcde4ad29308721954a521c96ed0 # v4
+        uses: pdm-project/setup-pdm@544d7237314ee09c256785bd360f6b30add38b37 # v4.6
         with:
           cache: true
 
       - name: Install dependencies
+        id: install
         run: pdm install -d
 
-      - name: ${{ matrix.name }}
-        run: ${{ matrix.command }}
+      - name: Format Check
+        run: pdm run ruff format --check .
 
-  check-license-header:
-    name: License Header Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Lint Check
+        if: ${{ !cancelled() && steps.install.outcome != 'failure' }}
+        run: pdm run ruff check .
+
+      - name: Tests Check
+        if: ${{ !cancelled() && steps.install.outcome != 'failure' }}
+        run: pdm run tests
+
+      - name: Translation Stubs Check
+        if: ${{ !cancelled() && steps.install.outcome != 'failure' }}
+        run: pdm run i18n-stubs --check
+
       - name: Setup Licensor
-        uses: nicebots-xyz/licensor/.github/actions/setup-licensor@20ff71ae4c0ca9874893c11c7c2cbdb9d22e179e # v0.1.0
-        with:
-          version: v0.1.0
-      - name: Check Header Compliance
+        if: ${{ !cancelled() }}
+        uses: nicebots-xyz/licensor/.github/actions/setup-licensor@577188f94866994b07577a82aae6d59680427d8d # v0.2.1
+
+      - name: License Header Check
+        if: ${{ !cancelled() }}
         run: licensor check * --ignore ".*"

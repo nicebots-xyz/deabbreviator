@@ -9,22 +9,15 @@ from typing import Any, final, overload
 import discord
 import sentry_sdk
 
-from src import custom
-from src.i18n.classes import RawTranslation, apply_locale
+from src import custom, i18n
+from src.extensions.nice_errors.translation_types import ExtensionStrings
+from src.i18n.classes import RawTranslation
 
 logger = logging.getLogger("bot").getChild("nice_errors").getChild("handlers")
 
 
-def _get_locale(ctx: custom.Context | discord.Interaction) -> str | None:
-    locale: str | None = None
-    if isinstance(ctx, custom.ApplicationContext):
-        locale = ctx.locale or ctx.guild_locale
-    elif isinstance(ctx, custom.ExtContext):
-        if ctx.guild:
-            locale = ctx.guild.preferred_locale
-    elif isinstance(ctx, discord.Interaction):  # pyright: ignore[reportUnnecessaryIsInstance]
-        locale = ctx.locale or ctx.guild_locale
-    return locale
+def _get_locale(ctx: custom.ApplicationContext | discord.Interaction) -> str | None:
+    return ctx.locale or ctx.guild_locale
 
 
 class BaseErrorHandler[E: Exception](ABC):
@@ -35,14 +28,14 @@ class BaseErrorHandler[E: Exception](ABC):
     async def __call__(
         self,
         error: E,
-        ctx: custom.Context | discord.Interaction,
+        ctx: custom.ApplicationContext | discord.Interaction,
         sendargs: dict[str, Any],
         message: str,
         report: bool,
     ) -> "ErrorHandlerRType": ...
 
     @staticmethod
-    def _get_locale(ctx: custom.Context | discord.Interaction) -> str | None:
+    def _get_locale(ctx: custom.ApplicationContext | discord.Interaction) -> str | None:
         return _get_locale(ctx)
 
 
@@ -71,7 +64,7 @@ class ErrorHandlerManager:
     async def handle_error(
         self,
         error: Exception | discord.ApplicationCommandInvokeError,
-        ctx: discord.Interaction | custom.Context,
+        ctx: discord.Interaction | custom.ApplicationContext,
         /,
         raw_translations: dict[str, RawTranslation],
         use_sentry_sdk: bool = False,
@@ -82,7 +75,7 @@ class ErrorHandlerManager:
             "ephemeral": True,
         }
         message: str = ""
-        translations = apply_locale(raw_translations, _get_locale(ctx))
+        translations = i18n.typed(i18n.apply_locale(raw_translations, _get_locale(ctx)), ExtensionStrings)
         if isinstance(error, discord.ApplicationCommandInvokeError):
             original_error = error.original
 

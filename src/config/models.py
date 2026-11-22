@@ -2,9 +2,9 @@
 # Copyright: 2024-2026 NiceBots.xyz
 
 
-from typing import Literal, overload, override
+from typing import Annotated, Literal, overload
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Discriminator, Tag
 
 type Extension = dict[str, object]
 
@@ -20,18 +20,6 @@ class RedisConfig(BaseModel):
 class CacheConfig(BaseModel):
     type: Literal["memory", "redis"] = "memory"
     redis: RedisConfig | None = None
-
-
-class PrefixConfig(BaseModel):
-    prefix: str
-    enabled: bool = True
-
-    def __bool__(self) -> bool:
-        return self.enabled
-
-    @override
-    def __str__(self) -> str:
-        return self.prefix if self.enabled else ""
 
 
 class SlashConfig(BaseModel):
@@ -54,7 +42,6 @@ class RestConfig(BaseModel):
 class BotConfig(BaseModel):
     token: str
     public_key: str | None = None
-    prefix: PrefixConfig | str = PrefixConfig(prefix="!", enabled=False)
     slash: SlashConfig = SlashConfig(enabled=False)
     cache: CacheConfig = CacheConfig()
     rest: RestConfig = RestConfig()
@@ -80,10 +67,44 @@ class BackendConfig(BaseModel):
     server_header: bool = False
 
 
+class S3StorageConfig(BaseModel):
+    type: Literal["s3"] = "s3"
+    endpoint: str
+    bucket: str
+    access_key: str
+    secret_key: str
+    region: str | None = None
+    ssl: bool = True
+
+
+class MemoryStorageConfig(BaseModel):
+    type: Literal["memory"]
+
+
+class LocalStorageConfig(BaseModel):
+    type: Literal["local"]
+    path: str
+
+
+def _storage_type(value: object) -> str:
+    if isinstance(value, dict):
+        return str(value.get("type", "s3"))  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
+    return str(getattr(value, "type", "s3"))
+
+
+StorageConfig = Annotated[
+    Annotated[S3StorageConfig, Tag("s3")]
+    | Annotated[MemoryStorageConfig, Tag("memory")]
+    | Annotated[LocalStorageConfig, Tag("local")],
+    Discriminator(_storage_type),
+]
+
+
 class DbExtraApp(BaseModel):
     url: str | None = None
     params: dict[str, object] | None = None
     models: list[str] = []
+    s3: StorageConfig | None = None
 
 
 class DbConfig(BaseModel):
@@ -91,6 +112,7 @@ class DbConfig(BaseModel):
     enabled: bool = True
     params: dict[str, object] | None = None
     extra_apps: dict[str, DbExtraApp] = {}
+    s3: StorageConfig | None = None
 
 
 class Config(BaseModel):
